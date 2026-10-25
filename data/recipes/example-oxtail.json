@@ -1,0 +1,58 @@
+{
+  "example": true,
+  "heat": "Low coals",
+  "hours": "4",
+  "kind": "Potjie",
+  "layers": [
+    {
+      "items": [
+        "2 kg oxtail, cut into pieces",
+        "2 Tbsp oil",
+        "2 onions, chopped",
+        "3 cloves garlic, crushed",
+        "1 Tbsp smoked paprika",
+        "500 ml dry red wine",
+        "500 ml beef stock",
+        "2 bay leaves"
+      ],
+      "label": "Meat (brown first)"
+    },
+    {
+      "items": [
+        "6 carrots, thickly sliced",
+        "6 baby potatoes, halved",
+        "1 butternut, cubed"
+      ],
+      "label": "Hard veg"
+    },
+    {
+      "items": [
+        "250 g brown mushrooms",
+        "1 punnet baby marrows, halved"
+      ],
+      "label": "Soft veg"
+    },
+    {
+      "items": [
+        "2 Tbsp chutney",
+        "1 Tbsp cornflour mixed with a little water",
+        "Salt and black pepper"
+      ],
+      "label": "Finish"
+    }
+  ],
+  "notes": "Example recipe to show how the book works. Edit it into your own or delete it. Oxtail wants time: keep the coals low and resist lifting the lid.",
+  "pot": "No. 3",
+  "serves": "8",
+  "steps": [
+    "Heat the oil in the pot over hot coals and brown the oxtail in batches. Take it out.",
+    "Fry the onion and garlic until soft, add the paprika, then return the meat.",
+    "Add the wine, stock and bay leaves. Lid on, pull back to low coals and simmer for about 3 hours. Add a little stock if it gets dry.",
+    "Pack the carrots, potatoes and butternut on top of the meat. Don't stir.",
+    "After 30 minutes add the mushrooms and baby marrows as the top layer.",
+    "Cook another 20–30 minutes until the veg is tender.",
+    "Stir in the chutney and cornflour paste, season, and serve with rice or potbrood."
+  ],
+  "title": "Oxtail Potjie with Red Wine",
+  "updatedAt": 1793000000000
+}

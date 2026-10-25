@@ -6,7 +6,7 @@ A South African potjiekos cookbook app, built with Claude.
 
 ## What it does
 - Browse, search and filter recipes (Potjiekos, Potbrood, Braaivleis, Bykos, Poeding)
-- Layer-by-layer "Pack the pot" diagram — moenie roer nie!
+- Layer-by-layer "Pack the pot" diagram (moenie roer nie!)
 - Tick-off method steps and keep-screen-on mode for cooking at the fire
 - "Nou gaan ons Shop!" shopping list sorted by Checkers aisle, with Sixty60 search words
 - Kiekie: add photos to any step or as general recipe photos
@@ -19,5 +19,12 @@ A South African potjiekos cookbook app, built with Claude.
 - `user` — checking who may edit
 
 Opened outside Claude, the page loads but shows that recipes can't load here.
+
+## What's in this repo
+- `index.html`: the app
+- `recipes/`: readable copies of every recipe, including the house potjie *Bietjie Lam Groente*
+- `data/recipes/`: the recipe data exactly as the app stores it (exported 25 October 2026)
+- `docs/PROJECT_NOTES.md`: every decision, feature, pot size, known limit and the project history
+- `docs/pots/`: photos of the Falkirk 8B and No. 3 pots
 
 Live app: https://claude.ai/artifact/8kwkRckH34jfP8URVAcLBq
