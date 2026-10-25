@@ -1,0 +1,650 @@
+<title>PotjieBook</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Atkinson+Hyperlegible:wght@400;700&family=Courier+Prime:wght@400;700&family=Caveat:wght@600;700&display=swap">
+<style>
+/* Layout: Karoo farmhouse kitchen. Sticky rooi-grond bar + gingham tablecloth strip, sunset/windpomp banner, recipe cards like Ouma's tin. */
+:root{
+  --bg:#F1F3EE; --surface:#FFFFFF; --ink:#141714; --muted:#545B55; --line:#D3D9D2;
+  --rooi:#0B0B0B; --rooi-ink:#FFFFFF; --accent:#DE3831; --accent-ink:#FFFFFF;
+  --blou:#002395; --fynbos:#007A4D; --mielie:#FFB612;
+  --sky1:#DE3831; --sky2:#FFB612; --sun:#FFE7A3; --sil:#0B0B0B;
+  --flag-green:#007A4D; --flag-gold:#FFB612; --flag-white:#FFFFFF; --flag-black:#0B0B0B;
+  --say:#141714;
+  --l1:#DE3831; --l2:#E09A00; --l3:#007A4D; --l4:#002395; --l5:#3A3F3B;
+  --display:"Alfa Slab One",Rockwell,"Roboto Slab",Georgia,serif;
+  --body:"Atkinson Hyperlegible",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --type:"Courier Prime","Courier New",ui-monospace,monospace;
+  --hand:"Caveat","Segoe Print","Comic Sans MS",cursive;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0E120F; --surface:#18201B; --ink:#F1F3EE; --muted:#A3ACA5; --line:#2C362F;
+  --rooi:#050505; --rooi-ink:#FFFFFF; --accent:#F25A4E; --accent-ink:#1A0402;
+  --blou:#7E98F0; --fynbos:#2FB57A; --mielie:#FFC23D;
+  --sky1:#0A1C5C; --sky2:#DE3831; --sun:#FFB612; --sil:#050505;
+  --flag-green:#007A4D; --flag-gold:#FFB612; --flag-white:#F1F3EE; --flag-black:#050505;
+  --say:#FFFFFF;
+  --l1:#E2443D; --l2:#E5A20F; --l3:#0E8A57; --l4:#2A4BC0; --l5:#55605A; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0E120F; --surface:#18201B; --ink:#F1F3EE; --muted:#A3ACA5; --line:#2C362F;
+  --rooi:#050505; --rooi-ink:#FFFFFF; --accent:#F25A4E; --accent-ink:#1A0402;
+  --blou:#7E98F0; --fynbos:#2FB57A; --mielie:#FFC23D;
+  --sky1:#0A1C5C; --sky2:#DE3831; --sun:#FFB612; --sil:#050505;
+  --flag-green:#007A4D; --flag-gold:#FFB612; --flag-white:#F1F3EE; --flag-black:#050505;
+  --say:#FFFFFF;
+  --l1:#E2443D; --l2:#E5A20F; --l3:#0E8A57; --l4:#2A4BC0; --l5:#55605A; color-scheme:dark}
+
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:16px;line-height:1.5}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--rooi)}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+
+/* header */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--rooi);color:var(--rooi-ink)}
+.top .wrap{display:flex;align-items:center;gap:12px;padding-block:12px}
+.brand{font-family:var(--display);font-weight:400;font-size:26px;line-height:1;margin:0;flex:1;min-width:0;background:none;border:0;padding:0;text-align:left;cursor:pointer;color:inherit;letter-spacing:.01em}
+.brand small{display:block;font-family:var(--hand);font-size:19px;font-weight:600;opacity:.85;margin-top:2px;letter-spacing:0}
+.flagstripe{height:18px;background:linear-gradient(var(--flag-gold) 0 4px,var(--flag-green) 4px 14px,var(--flag-white) 14px 18px)}
+.brand small{color:var(--flag-gold)}
+.btn{display:inline-flex;align-items:center;gap:6px;border:0;border-radius:6px;padding:10px 14px;font-weight:700;cursor:pointer;background:var(--accent);color:var(--accent-ink);white-space:nowrap}
+.top .btn{background:var(--mielie);color:#2B1A12}
+.btn.ghost{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
+.btn.danger{background:transparent;color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
+.btn.danger.armed{background:var(--accent);color:var(--accent-ink)}
+.btn:disabled{opacity:.5;cursor:default}
+
+main{padding-block:20px 32px}
+.view{display:flex;flex-direction:column;gap:18px}
+
+/* karoo banner */
+.karoo{position:relative;border-radius:12px;overflow:hidden;border:2px solid var(--sil)}
+.karoo svg{display:block;width:100%;height:150px}
+.karoo .say{position:absolute;left:138px;top:12px;right:12px;color:var(--say)}
+.karoo .say b{display:block;font-family:var(--hand);font-size:clamp(26px,6.5vw,38px);line-height:1;font-weight:700}
+.karoo .say span{font-family:var(--type);font-size:13px;font-weight:700}
+
+/* list */
+.search{width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface)}
+.chips{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--surface);border-radius:999px;padding:6px 14px;cursor:pointer;font-weight:700;font-size:14px}
+.chip[aria-pressed="true"]{background:var(--blou);color:var(--surface);border-color:var(--blou)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.card{display:flex;flex-direction:column;gap:6px;text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:4px;padding:16px 14px 14px;cursor:pointer;min-width:0;
+  background-image:repeating-linear-gradient(transparent 0 27px,color-mix(in srgb,var(--blou) 14%,transparent) 27px 28px);background-position:0 46px}
+.card:hover{border-color:var(--accent)}
+.kicker{font-family:var(--type);font-size:13px;font-weight:700;letter-spacing:.04em;color:var(--accent)}
+.card h3{font-family:var(--display);font-weight:400;font-size:22px;line-height:1.15;margin:0;text-wrap:balance}
+.card .meta{font-family:var(--type);font-size:14px;color:var(--muted)}
+.tag{align-self:flex-start;font-family:var(--hand);font-size:19px;font-weight:600;color:var(--blou);transform:rotate(-2deg);line-height:1}
+.empty{background:var(--surface);border:1.5px dashed var(--line);border-radius:10px;padding:28px 20px;text-align:center;color:var(--muted)}
+.empty strong{display:block;color:var(--ink);font-family:var(--display);font-weight:400;font-size:22px;margin-bottom:4px}
+.empty em{display:block;font-family:var(--hand);font-size:22px;font-style:normal;color:var(--accent)}
+
+/* detail */
+.back{align-self:flex-start;background:none;border:0;padding:4px 0;color:var(--muted);cursor:pointer;font-weight:700}
+.rtitle{font-family:var(--display);font-weight:400;font-size:clamp(34px,8.5vw,54px);line-height:1.02;margin:0;text-wrap:balance}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);border-block:2px solid var(--ink)}
+.facts div{padding:10px 8px;border-left:1px dashed var(--line)}
+.facts div:first-child{border-left:0;padding-left:0}
+.facts dt{font-family:var(--type);font-size:12px;font-weight:700;color:var(--muted)}
+.facts dd{margin:0;font-weight:700;font-variant-numeric:tabular-nums}
+@media (max-width:460px){.facts{grid-template-columns:repeat(2,1fr)}.facts div:nth-child(3){border-left:0;padding-left:0}.facts div:nth-child(n+3){border-top:1px dashed var(--line)}}
+.story{font-size:17px;max-width:62ch;margin:0;padding:12px 14px;background:var(--surface);border-left:3px solid var(--mielie);border-radius:0 6px 6px 0}
+h2.sec{font-family:var(--display);font-weight:400;font-size:24px;margin:10px 0 0;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 12px}
+h2.sec span{font-family:var(--hand);font-size:22px;font-weight:600;color:var(--accent)}
+
+.potwrap{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:end}
+@media (max-width:460px){.potwrap{grid-template-columns:110px 1fr;gap:12px}}
+.pot{position:relative;padding-top:14px}
+.pot .lid{height:10px;margin:0 6%;background:var(--sil);border-radius:6px 6px 0 0;position:absolute;top:0;left:0;right:0}
+.pot .lid::after{content:"";position:absolute;width:22%;height:8px;left:39%;top:-7px;background:var(--sil);border-radius:4px 4px 0 0}
+.pot .body{display:flex;flex-direction:column-reverse;border:5px solid var(--sil);border-top-width:3px;border-radius:12px 12px 48% 48% / 12px 12px 40% 40%;overflow:hidden;aspect-ratio:1/1;max-width:100%;background:var(--surface)}
+.pot .band{flex:1 1 0;display:flex;align-items:center;justify-content:center;font-family:var(--type);font-weight:700;font-size:12px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.6);border-top:1px solid rgba(0,0,0,.2)}
+.pot .feet{display:flex;justify-content:space-between;padding:0 22%}
+.pot .feet i{width:6px;height:14px;background:var(--sil);border-radius:0 0 3px 3px}
+.pot .flames{display:flex;justify-content:center;gap:6px;margin-top:2px}
+.pot .flames i{width:10px;height:12px;border-radius:50% 50% 50% 50% / 70% 70% 30% 30%;background:var(--mielie)}
+.pot .flames i:nth-child(2){background:var(--accent);height:16px}
+@media (prefers-reduced-motion:no-preference){.pot .flames i{animation:flick 1.4s ease-in-out infinite alternate}.pot .flames i:nth-child(2){animation-delay:.4s}.pot .flames i:nth-child(3){animation-delay:.8s}}
+@keyframes flick{to{transform:scaleY(.75) translateY(2px)}}
+.layers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column-reverse;gap:6px}
+.layers li{display:flex;gap:10px;align-items:center;font-size:14px}
+.layers li b{width:14px;height:14px;border-radius:3px;flex:none}
+.layers li span{min-width:0}
+
+.ing{display:flex;flex-direction:column;gap:16px}
+.ing h4{margin:0 0 6px;font-family:var(--type);font-size:14px;font-weight:700;display:flex;gap:8px;align-items:center}
+.ing h4 b{width:10px;height:10px;border-radius:2px}
+.ing ul{margin:0;padding:0;list-style:none;border-top:1px dashed var(--line)}
+.ing li{padding:8px 0;border-bottom:1px dashed var(--line)}
+
+.steps{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;counter-reset:s}
+.steps li{counter-increment:s}
+.steps label{display:grid;grid-template-columns:34px 1fr;gap:10px;padding:10px 4px;cursor:pointer;border-radius:6px}
+.steps label:hover{background:var(--surface)}
+.steps input{position:absolute;opacity:0;pointer-events:none}
+.steps .n{width:28px;height:28px;border-radius:50%;border:2px solid var(--ink);display:grid;place-items:center;font-family:var(--type);font-weight:700;font-size:13px}
+.steps .n::before{content:counter(s)}
+.steps input:checked ~ .n{background:var(--fynbos);border-color:var(--fynbos);color:var(--surface)}
+.steps input:checked ~ .n::before{content:"✓"}
+.steps input:checked ~ span:last-child{color:var(--muted);text-decoration:line-through;text-decoration-thickness:1px}
+.steps input:focus-visible ~ .n{outline:3px solid var(--accent);outline-offset:2px}
+.toolbar{display:flex;gap:10px;flex-wrap:wrap}
+.signoff{font-family:var(--hand);font-size:28px;font-weight:700;color:var(--accent);margin:4px 0 0;transform:rotate(-1.5deg)}
+
+/* edit */
+form{display:flex;flex-direction:column;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-family:var(--type);font-size:14px;font-weight:700;color:var(--muted)}
+.field input,.field select,.field textarea{padding:11px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);width:100%;box-sizing:border-box}
+.field textarea{min-height:120px;resize:vertical;line-height:1.5}
+.field textarea.tall{min-height:220px;font-family:var(--type);font-size:15px}
+.field .hint{font-size:13px;color:var(--muted)}
+.row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media (max-width:520px){.row{grid-template-columns:1fr 1fr}}
+.formbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.msg{font-size:14px;color:var(--accent)}
+.notice{font-size:14px;color:var(--muted);background:var(--surface);border-radius:8px;padding:10px 12px}
+/* shopping */
+.btn.shop{background:var(--fynbos);color:#fff;font-size:17px;padding:13px 18px;align-self:flex-start;box-shadow:inset 0 -3px 0 var(--mielie)}
+.shophead{display:flex;flex-direction:column;gap:4px}
+.tally{font-family:var(--type);font-weight:700;font-size:15px;color:var(--muted)}
+.tally b{color:var(--accent);font-size:20px}
+.aisle{font-family:var(--display);font-weight:400;font-size:20px;margin:6px 0 0;display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.aisle span{font-family:var(--type);font-size:13px;font-weight:700;color:var(--muted)}
+.shoplist{list-style:none;margin:0;padding:0;border-top:1px dashed var(--line)}
+.shopitem{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);flex-wrap:wrap}
+.shopitem label{display:flex;gap:12px;align-items:center;flex:1 1 220px;min-width:0;cursor:pointer;padding:4px 0}
+.shopitem input{position:absolute;opacity:0;pointer-events:none}
+.shopitem .box{width:24px;height:24px;flex:none;border:2px solid var(--ink);border-radius:5px;display:grid;place-items:center;font-weight:700;font-size:14px}
+.shopitem input:checked ~ .box{background:var(--fynbos);border-color:var(--fynbos);color:#fff}
+.shopitem input:checked ~ .box::before{content:"✓"}
+.shopitem input:focus-visible ~ .box{outline:3px solid var(--accent);outline-offset:2px}
+.shopitem .txt{min-width:0}
+.shopitem input:checked ~ .txt{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:var(--accent);color:var(--muted)}
+.shopitem .txt small{display:block;font-family:var(--hand);font-size:18px;color:var(--fynbos);text-decoration:none}
+.term{border:1.5px solid var(--blou);color:var(--blou);background:transparent;border-radius:999px;padding:5px 12px;font-family:var(--type);font-weight:700;font-size:13px;cursor:pointer;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.term.ok{background:var(--blou);color:var(--surface)}
+.shopitem.have .term{opacity:.4}
+.copybox{width:100%;box-sizing:border-box;min-height:160px;font-family:var(--type);padding:10px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface)}
+/* kiekies */
+.vh{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;left:0;top:0;pointer-events:none}
+.detail{padding-bottom:72px}
+.coverbtn{padding:0;border:0;background:none;cursor:zoom-in;display:block}
+.cover{display:block;width:100%;max-width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:10px;border:2px solid var(--sil)}
+.thumbs{display:flex;gap:8px;flex-wrap:wrap}
+.thumbs .ph,.thumbs .prev{padding:0;border:1.5px solid var(--line);background:var(--surface);cursor:pointer;border-radius:6px;overflow:hidden;width:76px;height:76px;display:block}
+.thumbs img{width:100%;height:100%;object-fit:cover;display:block}
+.steps .extra{display:flex;flex-direction:column;gap:6px;padding:0 4px 8px 48px}
+.look{font-size:13px;color:var(--blou);font-weight:700;text-decoration:none;align-self:flex-start}
+.look:hover{text-decoration:underline}
+.toolbar .look{align-self:center}
+.fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:6;display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:14px 20px;font-weight:700;font-size:17px;cursor:pointer;background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 16px rgba(0,0,0,.35),inset 0 -3px 0 var(--mielie)}
+.sheet{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
+.sheet .panel{background:var(--surface);color:var(--ink);width:100%;max-width:560px;max-height:88%;overflow:auto;border-radius:14px 14px 0 0;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding-top:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.sheettitle{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
+.sheetsub{margin:0;color:var(--muted);font-size:14px}
+.sheet .opt{display:flex;flex-direction:column;gap:2px;text-align:left;border:1.5px solid var(--line);background:var(--bg);border-radius:8px;padding:10px 12px;cursor:pointer}
+.sheet .opt:hover{border-color:var(--fynbos)}
+.sheet .opt b{font-family:var(--type);font-weight:700;color:var(--fynbos)}
+.sheet .opt span{font-size:14px;color:var(--ink)}
+.sheet .big{width:100%;max-width:100%;max-height:62vh;object-fit:contain;border-radius:8px;background:#000}
+footer{text-align:center;padding-block:8px 32px;color:var(--muted);font-family:var(--hand);font-size:21px}
+@media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s,transform .15s}.card:hover{transform:rotate(-.6deg)}}
+</style>
+
+<header class="top"><div class="wrap">
+  <button class="brand" id="home" type="button">PotjieBook<small>In die pot, vanuit die hart</small></button>
+  <button class="btn" id="newBtn" type="button">+ New recipe</button>
+</div><div class="flagstripe" aria-hidden="true"></div></header>
+
+<main class="wrap" id="app"></main>
+<input type="file" class="vh" id="camIn" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
+<input type="file" class="vh" id="galIn" accept="image/*" multiple tabindex="-1" aria-hidden="true">
+<div class="sheet" id="sheet" hidden><div class="panel" role="dialog" aria-modal="true" aria-label="Save kiekie"></div></div>
+<div class="sheet" id="lightbox" hidden><div class="panel" role="dialog" aria-modal="true" aria-label="Photo"></div></div>
+<footer class="wrap">Moenie roer nie · Smaaklike ete!</footer>
+
+<script>
+const KINDS=["Potjie","Potbrood","Braai","Side","Dessert","Other"];
+const KIND_AF={Potjie:"Potjiekos",Potbrood:"Potbrood",Braai:"Braaivleis",Side:"Bykos",Dessert:"Poeding",Other:"Ander"};
+const MY_POT="Falkirk No. 8B flat-bottom";
+const MY_POT3="Falkirk No. 3 three-leg";
+const MY_POTS=[MY_POT,MY_POT3];
+const POT_INFO={[MY_POT]:"35 × 13 cm · about 10–12 L · feeds 12–16",[MY_POT3]:"about 7.8 L · feeds 8–10"};
+const POTS=["",MY_POT,MY_POT3,"No. ½","No. 1","No. 2","No. 3","No. 4","No. 6","No. 8","No. 10","No. 12","No. 14"];
+const HEAT=["","Low coals","Medium coals","Coals under, coals on lid","Gas flame"];
+const app=document.getElementById("app");
+let db=null, dbState="loading", canWrite=true, recipes=[], filter="All", query="", view="list", currentId=null, wakeLock=null;
+
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const layerColor=i=>`var(--l${(i%5)+1})`;
+const byId=id=>recipes.find(r=>r.id===id);
+function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||"null");localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+
+const BANNER=`<svg viewBox="0 0 400 150" preserveAspectRatio="xMinYMax slice" aria-hidden="true">
+<defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky1)"/><stop offset="1" style="stop-color:var(--sky2)"/></linearGradient></defs>
+<rect width="400" height="150" fill="url(#sky)"/>
+<circle cx="262" cy="112" r="26" style="fill:var(--sun)"/>
+<path d="M0 150V118h34l16-14h36l14 16h48l20-12h30l14 14h46l22-18h34l18 16h22l20-6h26v36z" style="fill:var(--sil)"/>
+<g style="stroke:var(--sil);fill:none" stroke-width="2" stroke-linecap="round">
+<path d="M104 124L118 58M132 124L118 58M108 108h20M111 92h14M114 76h8M108 108L125 92M128 108L111 92M111 92L122 76M125 92L114 76"/>
+<circle cx="118" cy="54" r="13"/>
+<path d="M118 41v26M105 54h26M109 45l18 18M127 45l-18 18M118 54h26"/>
+</g>
+<path d="M140 54l14-8v16z" style="fill:var(--sil)"/>
+<g style="fill:var(--sil)" transform="translate(-34 0)">
+<ellipse cx="352" cy="128" rx="18" ry="14"/><rect x="336" y="112" width="32" height="5" rx="2"/>
+<rect x="340" y="138" width="3" height="10"/><rect x="350.5" y="140" width="3" height="10"/><rect x="361" y="138" width="3" height="10"/>
+</g>
+<path transform="translate(-34 0)" d="M352 108c-6-8 6-12 0-20s6-12 2-18" style="stroke:var(--sil);fill:none;opacity:.45" stroke-width="2" stroke-linecap="round"/>
+<polygon points="0,0 54,0 129,75 54,150 0,150" style="fill:var(--flag-white)"/>
+<polygon points="0,0 42,0 117,75 42,150 0,150" style="fill:var(--flag-green)"/>
+<polygon points="0,14 61,75 0,136" style="fill:var(--flag-gold)"/>
+<polygon points="0,24 51,75 0,126" style="fill:var(--flag-black)"/>
+</svg>`;
+
+function metaLine(r){
+  const bits=[];
+  if(r.serves) bits.push(`Feeds ${r.serves}`);
+  if(r.hours) bits.push(`${r.hours} h on the coals`);
+  return bits.join(" · ");
+}
+
+function render(){
+  document.getElementById("newBtn").hidden = !canWrite || dbState!=="ready";
+  if(view==="detail" && byId(currentId)) return renderDetail(byId(currentId));
+  if(view==="shop" && byId(currentId)) return renderShop(byId(currentId));
+  if(view==="edit") return;
+  view="list"; renderList();
+}
+
+function renderList(){
+  const n=recipes.length, pj=recipes.filter(r=>r.kind==="Potjie").length;
+  const sub = dbState==="loading" ? "Die kole word warm gemaak…" : `${n} resep${n===1?"":"te"} · ${pj} potjie${pj===1?"":"s"} in the book`;
+  let html=`<div class="view"><div class="karoo">${BANNER}<div class="say"><b>In die pot, vanuit die hart</b><span>${esc(sub)}</span></div></div>`;
+  if(dbState==="none"){
+    html+=`<div class="empty"><strong>Recipes can't load here</strong>Open this cookbook from your Claude app or claude.ai while signed in to see and save your recipes.</div></div>`;
+    app.innerHTML=html; return;
+  }
+  html+=`<input class="search" id="q" type="search" placeholder="Search recipes or ingredients · Soek" value="${esc(query)}" aria-label="Search recipes">`;
+  const kinds=["All",...KINDS.filter(k=>recipes.some(r=>r.kind===k))];
+  html+=`<div class="chips" role="toolbar" aria-label="Filter by type">${kinds.map(k=>`<button class="chip" type="button" data-k="${esc(k)}" aria-pressed="${k===filter}">${k==="All"?"Alles":esc(KIND_AF[k]||k)}</button>`).join("")}</div>`;
+  const ql=query.trim().toLowerCase();
+  const list=recipes
+    .filter(r=>filter==="All"||r.kind===filter)
+    .filter(r=>!ql||[r.title,r.notes,...(r.layers||[]).flatMap(l=>[l.label,...(l.items||[])])].join(" ").toLowerCase().includes(ql))
+    .sort((a,b)=>(a.kind==="Potjie"?0:1)-(b.kind==="Potjie"?0:1)||String(a.title).localeCompare(b.title));
+  if(dbState==="loading") html+=`<div class="empty">Die kole word warm gemaak… loading your recipes.</div>`;
+  else if(!recipes.length) html+=`<div class="empty"><strong>Die boek is leeg</strong>Tap <b>+ New recipe</b> to add your first potjie.<em>Kom ons begin!</em></div>`;
+  else if(!list.length) html+=`<div class="empty">Niks gevind nie. No recipes match “${esc(query)}”.</div>`;
+  else html+=`<div class="cards">${list.map(r=>`
+    <button class="card" type="button" data-id="${esc(r.id)}">
+      <span class="kicker">${esc(KIND_AF[r.kind]||r.kind||"Resep")}${r.pot?` · ${esc(r.pot)}`:""}</span>
+      <h3>${esc(r.title||"Untitled")}</h3>
+      <span class="meta">${esc(metaLine(r))||"&nbsp;"}</span>
+      ${r.example?`<span class="tag">voorbeeld · example</span>`:""}
+    </button>`).join("")}</div>`;
+  html+=`</div>`;
+  app.innerHTML=html;
+  const q=document.getElementById("q");
+  q.addEventListener("input",e=>{query=e.target.value;const pos=e.target.selectionStart;renderList();const nq=document.getElementById("q");nq.focus();nq.setSelectionRange(pos,pos)});
+  app.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.k;renderList()});
+  app.querySelectorAll(".card").forEach(b=>b.onclick=()=>openRecipe(b.dataset.id));
+}
+
+function openRecipe(id){currentId=id;view="detail";renderDetail(byId(id));window.scrollTo(0,0)}
+
+const isSide=l=>/^(on the side|side|bykos)/i.test((l.label||"").trim());
+const photoSrc=p=>p.url||("/_blob/"+p.id);
+const IMG_SEARCH=q=>"https://www.google.com/search?tbm=isch&q="+encodeURIComponent(q);
+function lookQuery(step,r){
+  const s=step.toLowerCase();
+  if(/\bbrown/.test(s)) return "browning meat in potjie pot";
+  if(/onion|garlic|mushroom/.test(s)&&/fry|soft/.test(s)) return "frying onions and mushrooms in potjie";
+  if(/pack|layer/.test(s)) return "potjiekos vegetables layered in pot";
+  if(/patty|marrow/.test(s)) return "patty pans baby marrows potjie";
+  if(/soup|thick|gravy/.test(s)) return "potjiekos thick gravy";
+  if(/rice/.test(s)) return "fluffy basmati rice";
+  if(/simmer|boil/.test(s)) return (r.title||"")+" potjie simmering";
+  return (r.title||"")+" potjiekos";
+}
+const thumbs=list=>list.length?`<div class="thumbs">${list.map(p=>`<button type="button" class="ph" data-ph="${esc(p.id)}" aria-label="Open photo"><img src="${esc(photoSrc(p))}" alt="" loading="lazy"></button>`).join("")}</div>`:"";
+
+function renderDetail(r){
+  const layers=(r.layers||[]).filter(l=>(l.items||[]).length);
+  const potLayers=layers.filter(l=>!isSide(l));
+  const colorOf=l=>{const i=potLayers.indexOf(l);return i<0?null:layerColor(i)};
+  const done=store("done:"+r.id)||[];
+  const showPot=r.kind==="Potjie"&&potLayers.length>1;
+  const photos=Array.isArray(r.photos)?r.photos:[];
+  const gen=photos.filter(p=>p.step==="general");
+  const canPhoto=canWrite&&dbState==="ready";
+  let h=`<div class="view detail">
+    <button class="back" type="button" id="back">← Terug · All recipes</button>
+    ${gen[0]?`<button type="button" class="coverbtn ph" data-ph="${esc(gen[0].id)}" aria-label="Open photo"><img class="cover" src="${esc(photoSrc(gen[0]))}" alt="${esc(r.title)}"></button>`:""}
+    <div><div class="kicker">${esc(KIND_AF[r.kind]||r.kind||"Resep")}${r.example?" · voorbeeld":""}</div>
+    <h1 class="rtitle">${esc(r.title)}</h1></div>
+    <dl class="facts">
+      <div><dt>Pot${MY_POTS.includes(r.pot)?" · jou pot":""}</dt><dd>${esc(r.pot||"—")}${POT_INFO[r.pot]?`<small style="display:block;font-weight:400;font-size:12px;color:var(--muted)">${esc(POT_INFO[r.pot])}</small>`:""}</dd></div>
+      <div><dt>Feeds</dt><dd>${esc(r.serves||"—")}</dd></div>
+      <div><dt>On the coals</dt><dd>${r.hours?esc(r.hours)+" h":"—"}</dd></div>
+      <div><dt>Heat</dt><dd>${esc(r.heat||"—")}</dd></div>
+    </dl>
+    ${layers.length?`<button class="btn shop" type="button" id="shop">Nou gaan ons Shop!</button>`:""}
+    ${r.notes?`<p class="story">${esc(r.notes)}</p>`:""}
+    <h2 class="sec">Kiekies <span>photos of this potjie</span></h2>
+    ${gen.length>1?thumbs(gen.slice(1)):""}
+    ${!photos.length?`<p class="notice">No kiekies yet. Tap <b>Kiekie</b> while you cook, or load photos you already took.</p>`:""}
+    <div class="toolbar">
+      ${canPhoto?`<label class="btn ghost" for="galIn" id="loadKiekie" role="button" tabindex="0">Load Kiekie</label>`:""}
+      <a class="look" href="${esc(IMG_SEARCH((r.title||"")+" potjiekos"))}" target="_blank" rel="noopener">See dishes like this ↗</a>
+    </div>`;
+  if(showPot){
+    h+=`<h2 class="sec">Pack the pot <span>moenie roer nie!</span></h2>
+    <div class="potwrap">
+      <div class="pot" aria-hidden="true"><div class="lid"></div>
+        <div class="body">${potLayers.map((l,i)=>`<div class="band" style="background:${layerColor(i)}">${i+1}</div>`).join("")}</div>
+        <div class="feet"><i></i><i></i><i></i></div>
+        <div class="flames"><i></i><i></i><i></i></div></div>
+      <ol class="layers">${potLayers.map((l,i)=>`<li><b style="background:${layerColor(i)}"></b><span><strong>${i+1}.</strong> ${esc(l.label)}</span></li>`).join("")}</ol>
+    </div>`;
+  }
+  h+=`<h2 class="sec">Ingredients <span>bestanddele</span></h2><div class="ing">${layers.map(l=>{const c=colorOf(l);return `
+    <div>${layers.length>1||l.label!=="Ingredients"?`<h4>${c?`<b style="background:${c}"></b>`:""}${esc(l.label)}</h4>`:""}
+    <ul>${l.items.map(it=>`<li>${esc(it)}</li>`).join("")}</ul></div>`}).join("")||`<p class="notice">No ingredients yet.</p>`}</div>`;
+  h+=`<h2 class="sec">Method <span>metode · tap each step when it's done</span></h2>
+    <ol class="steps">${(r.steps||[]).map((s,i)=>`<li><label><input type="checkbox" data-i="${i}" ${done.includes(i)?"checked":""}><span class="n"></span><span>${esc(s)}</span></label>
+      <div class="extra">${thumbs(photos.filter(p=>p.step===i))}<a class="look" href="${esc(IMG_SEARCH(lookQuery(s,r)))}" target="_blank" rel="noopener">Kyk hoe lyk dit ↗</a></div></li>`).join("")}</ol>
+    <p class="signoff">Smaaklike ete!</p>
+    <div class="toolbar">
+      <button class="btn ghost" type="button" id="wake">${wakeLock?"Screen stays on ✓":"Keep screen on while cooking"}</button>
+      <button class="btn ghost" type="button" id="reset">Clear ticks</button>
+      ${canWrite?`<button class="btn ghost" type="button" id="edit">Edit</button><button class="btn danger" type="button" id="del">Delete</button>`:""}
+    </div><p class="msg" id="dmsg" role="status"></p>
+    ${canPhoto?`<label class="fab" for="camIn" id="kiekie" role="button" tabindex="0"><svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M9 3 7.2 5H4a2 2 0 0 0-2 2v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-3.2L15 3H9zm3 5a5 5 0 1 1 0 10 5 5 0 0 1 0-10zm0 2a3 3 0 1 0 0 6 3 3 0 0 0 0-6z"/></svg>Kiekie</label>`:""}
+    </div>`;
+  app.innerHTML=h;
+  document.getElementById("back").onclick=()=>{view="list";render();window.scrollTo(0,0)};
+  app.querySelectorAll(".steps input").forEach(c=>c.onchange=()=>{
+    const d=[...app.querySelectorAll(".steps input:checked")].map(x=>+x.dataset.i);store("done:"+r.id,d)});
+  document.getElementById("reset").onclick=()=>{store("done:"+r.id,[]);renderDetail(r)};
+  document.getElementById("wake").onclick=toggleWake;
+  const sb=document.getElementById("shop");
+  if(sb) sb.onclick=()=>{view="shop";renderShop(r);window.scrollTo(0,0)};
+  app.querySelectorAll(".ph").forEach(b=>b.onclick=()=>openPhoto(r.id,b.dataset.ph));
+  [["kiekie","camIn"],["loadKiekie","galIn"]].forEach(([bid,iid])=>{
+    const el=document.getElementById(bid); if(!el) return;
+    el.addEventListener("click",()=>{photoRecipe=r.id;document.getElementById(iid).value=""});
+    el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();photoRecipe=r.id;const i=document.getElementById(iid);i.value="";i.click()}});
+  });
+  if(canWrite){
+    document.getElementById("edit").onclick=()=>openEditor(r);
+    const del=document.getElementById("del");
+    del.onclick=async()=>{
+      if(!del.classList.contains("armed")){del.classList.add("armed");del.textContent="Seker? Tap again to delete";setTimeout(()=>{if(del.isConnected){del.classList.remove("armed");del.textContent="Delete"}},4000);return}
+      del.disabled=true;
+      try{await db.collection("recipes").doc(r.id).delete();view="list";render()}
+      catch(e){document.getElementById("dmsg").textContent="Couldn't delete this recipe. Check your connection and try again."; del.disabled=false}
+    };
+  }
+}
+
+/* ---- Kiekies ---- */
+let photoRecipe=null, pendingFiles=[], assetsNS, assetsTried=false;
+async function getAssets(){
+  if(!assetsTried){assetsTried=true;try{assetsNS=window.claude?.use?await window.claude.use("assets"):null}catch(e){assetsNS=null}}
+  return assetsNS;
+}
+async function shrink(file){
+  try{
+    const bmp=await createImageBitmap(file);
+    const max=1600, k=Math.min(1,max/Math.max(bmp.width,bmp.height));
+    const c=document.createElement("canvas");c.width=Math.round(bmp.width*k);c.height=Math.round(bmp.height*k);
+    c.getContext("2d").drawImage(bmp,0,0,c.width,c.height);
+    const b=await new Promise(res=>c.toBlob(res,"image/jpeg",0.85));
+    return b||file;
+  }catch(e){return file}
+}
+function onPicked(e){
+  const files=[...(e.target.files||[])].filter(f=>f.type.startsWith("image/")||!f.type);
+  if(!files.length||!photoRecipe) return;
+  pendingFiles=files; openSheet();
+}
+function openSheet(){
+  const r=byId(photoRecipe); if(!r) return;
+  const sheet=document.getElementById("sheet");
+  const urls=pendingFiles.map(f=>URL.createObjectURL(f));
+  sheet.querySelector(".panel").innerHTML=`
+    <h3 class="sheettitle">Waar gaan ${pendingFiles.length>1?"hierdie kiekies":"hierdie kiekie"}?</h3>
+    <p class="sheetsub">Choose where to save ${pendingFiles.length>1?`these ${pendingFiles.length} photos`:"this photo"} in ${esc(r.title)}.</p>
+    <div class="thumbs">${urls.map(u=>`<span class="prev"><img src="${u}" alt=""></span>`).join("")}</div>
+    <button class="opt" type="button" data-step="general"><b>General photo</b><span>Shows at the top of the recipe</span></button>
+    ${(r.steps||[]).map((s,i)=>`<button class="opt" type="button" data-step="${i}"><b>Step ${i+1}</b><span>${esc(s.length>70?s.slice(0,70)+"…":s)}</span></button>`).join("")}
+    <p class="msg" id="smsg2" role="status"></p>
+    <button class="btn ghost" type="button" id="sheetCancel">Cancel</button>`;
+  sheet.hidden=false;
+  const close=()=>{sheet.hidden=true;urls.forEach(u=>URL.revokeObjectURL(u));pendingFiles=[]};
+  document.getElementById("sheetCancel").onclick=close;
+  sheet.querySelectorAll(".opt").forEach(b=>b.onclick=async()=>{
+    const step=b.dataset.step==="general"?"general":+b.dataset.step;
+    const msg=document.getElementById("smsg2");
+    sheet.querySelectorAll("button").forEach(x=>x.disabled=true);
+    msg.textContent="Saving kiekie…";
+    try{
+      const assets=await getAssets();
+      if(!assets) throw {code:"no_assets"};
+      const added=[];
+      for(let i=0;i<pendingFiles.length;i++){
+        msg.textContent=pendingFiles.length>1?`Saving kiekie ${i+1} of ${pendingFiles.length}…`:"Saving kiekie…";
+        const blob=await shrink(pendingFiles[i]);
+        const a=await assets.upload(blob);
+        added.push({id:a.id,url:a.url,step,at:Date.now()});
+      }
+      const cur=(byId(photoRecipe)?.photos)||[];
+      await db.collection("recipes").doc(photoRecipe).update({photos:[...cur,...added]});
+      close();
+    }catch(err){
+      sheet.querySelectorAll("button").forEach(x=>x.disabled=false);
+      msg.textContent=err&&err.code==="no_assets"?"Photos can't be saved from here. Open PotjieBook in your Claude app or claude.ai, signed in.":"Couldn't save the photo. Check your connection and try again.";
+    }
+  });
+}
+function openPhoto(rid,pid){
+  const r=byId(rid); const p=(r?.photos||[]).find(x=>x.id===pid); if(!p) return;
+  const box=document.getElementById("lightbox");
+  const where=p.step==="general"?"General photo":`Step ${p.step+1}`;
+  box.querySelector(".panel").innerHTML=`<img class="big" src="${esc(photoSrc(p))}" alt="">
+    <p class="sheetsub">${esc(where)}</p>
+    <div class="toolbar"><button class="btn" type="button" id="lbClose">Close</button>${canWrite?`<button class="btn danger" type="button" id="lbDel">Remove photo</button>`:""}</div>
+    <p class="msg" id="lbmsg" role="status"></p>`;
+  box.hidden=false;
+  document.getElementById("lbClose").onclick=()=>{box.hidden=true};
+  const d=document.getElementById("lbDel");
+  if(d) d.onclick=async()=>{
+    if(!d.classList.contains("armed")){d.classList.add("armed");d.textContent="Seker? Tap again";return}
+    d.disabled=true;
+    try{
+      const cur=(byId(rid)?.photos)||[];
+      await db.collection("recipes").doc(rid).update({photos:cur.filter(x=>x.id!==pid)});
+      try{const a=await getAssets();if(a)await a.delete(pid)}catch(e){}
+      box.hidden=true;
+    }catch(e){d.disabled=false;document.getElementById("lbmsg").textContent="Couldn't remove the photo. Try again."}
+  };
+}
+
+/* ---- Shopping list ---- */
+const AISLES=[
+  {key:"meat",af:"Slaghuis",en:"Butchery",words:["oxtail","beef","lamb","mutton","pork","chicken","boerewors","wors","sausage","bacon","steak","rib","shank","neck","mince","venison","kudu","springbok","eisbein","bones","brisket","chuck","shin","flank","trotter","tripe","ox liver","fish","snoek","hake","prawn"]},
+  {key:"veg",af:"Groente & vrugte",en:"Fresh produce",words:["onion","garlic","carrot","potato","butternut","pumpkin","mushroom","marrow","courgette","zucchini","tomato","green pepper","red pepper","yellow pepper","bell pepper","sweet pepper","celery","leek","ginger","chilli","chili","cabbage","green bean","peas","corn","mielie","sweet potato","patat","parsley","thyme","rosemary","coriander","dhania","lemon","lime","apple","spinach","gem squash","squash","brinjal","aubergine","beetroot","turnip","parsnip","baby corn","herb","spring onion","basil","bay lea"]},
+  {key:"dairy",af:"Suiwel & eiers",en:"Dairy & eggs",words:["butter","milk","cream","cheese","yoghurt","yogurt","egg","amasi","maas"]},
+  {key:"bakery",af:"Bakkery",en:"Bakery",words:["bread","roll","pita","wrap"]},
+  {key:"drinks",af:"Drank",en:"Wine & drinks",words:["wine","beer","brandy","sherry","port","cider","ginger beer","coke"]},
+  {key:"pantry",af:"Spens",en:"Pantry",words:[]}
+];
+const PANTRY_FIRST=["black pepper","peppercorn","paprika","pepper","stock","flour","cornflour","maizena","sugar","salt","oil","vinegar","chutney","spice","masala","curry","yeast","rice","pasta","samp","beans in","tinned","can of","tin of","dried","apricot","raisin","prune","sauce","soup","jam","honey","mustard","cumin","turmeric","cinnamon","nutmeg","clove","bay leaves"];
+function aisleOf(line){
+  const s=" "+line.toLowerCase()+" ";
+  if(/\b(black pepper|peppercorns?|paprika|stock|flour|cornflour|sugar|salt|oil|vinegar|chutney|spice|masala|curry|yeast|rice|dried|soup powder|sauce|cumin|turmeric|cinnamon|nutmeg|bay leaves|tinned|can of|tin of)\b/.test(s)
+     && !/\b(onion|garlic|carrot|potato|tomato)\b/.test(s.split(",")[0].replace(/tinned tomato|can of tomato|tin of tomato/,""))) return "pantry";
+  for(const a of AISLES){ if(a.words.some(w=>s.includes(w))) return a.key }
+  return "pantry";
+}
+function searchTerm(line){
+  let s=line.toLowerCase().split(/,|\(|;| - | – | mixed | for | to taste| or /)[0];
+  const lead=/^\s*(about|approx\.?|roughly|\d+[\d.,\/½¼¾]*|[½¼¾]|x|kg|g|grams?|ml|l|litres?|liters?|tbsp|tsp|tablespoons?|teaspoons?|cups?|cloves?|punnets?|packets?|packs?|cans?|tins?|bunch(es)?|pinch(es)?|handfuls?|sprigs?|stalks?|heads?|sticks?|large|medium|small|whole|fresh|of)\b\.?\s*/;
+  let prev;
+  do{prev=s;s=s.replace(lead,"").replace(/^\s*\d+[\d.,\/]*(kg|g|ml|l)\b\s*/,"")}while(s!==prev);
+  s=s.replace(/\b(chopped|finely|roughly|thickly|thinly|sliced|diced|crushed|grated|halved|quartered|cubed|peeled|minced|cut into pieces|cut|into|pieces|lukewarm|warm|cold|soft|melted|beaten)\b/g,"").replace(/\s+/g," ").trim();
+  return s||line;
+}
+function renderShop(r){
+  const items=(r.layers||[]).flatMap(l=>l.items||[]).map((t,i)=>({t,i,term:searchTerm(t),aisle:aisleOf(t)}));
+  const have=new Set(store("have:"+r.id)||[]);
+  const toBuy=items.filter(it=>!have.has(it.i)).length;
+  let h=`<div class="view">
+    <button class="back" type="button" id="back">← Terug na die resep</button>
+    <div class="shophead"><div class="kicker">Inkopielys · Shopping list</div>
+    <h1 class="rtitle">Nou gaan ons Shop!</h1>
+    <div class="tally" id="tally"><b>${toBuy}</b> to buy for ${esc(r.title)} · ${items.length-toBuy} already in the kas</div></div>
+    <p class="notice">Tick off what you already have. Sixty60 doesn't let other apps fill your trolley, so tap the blue search word to copy it, then paste it into the Sixty60 search.</p>`;
+  for(const a of AISLES){
+    const list=items.filter(it=>it.aisle===a.key);
+    if(!list.length) continue;
+    h+=`<h2 class="aisle">${a.af} <span>${a.en}</span></h2><ul class="shoplist">${list.map(it=>`
+      <li class="shopitem ${have.has(it.i)?"have":""}">
+        <label><input type="checkbox" data-i="${it.i}" ${have.has(it.i)?"checked":""}><span class="box"></span>
+          <span class="txt">${esc(it.t)}${have.has(it.i)?`<small>Klaar in die kas</small>`:""}</span></label>
+        <button class="term" type="button" data-term="${esc(it.term)}" aria-label="Copy search word ${esc(it.term)}">Sixty60: ${esc(it.term)} ⧉</button>
+      </li>`).join("")}</ul>`;
+  }
+  h+=`<div class="toolbar"><button class="btn" type="button" id="copyall">Copy list to buy</button><button class="btn ghost" type="button" id="unhave">Untick everything</button></div>
+    <p class="msg" id="smsg" role="status"></p><div id="copyfallback"></div>
+    <p class="signoff">Lekker shop!</p></div>`;
+  app.innerHTML=h;
+  document.getElementById("back").onclick=()=>{view="detail";renderDetail(r);window.scrollTo(0,0)};
+  app.querySelectorAll(".shopitem input").forEach(c=>c.onchange=()=>{
+    const s=new Set(store("have:"+r.id)||[]);
+    c.checked?s.add(+c.dataset.i):s.delete(+c.dataset.i);
+    store("have:"+r.id,[...s]);renderShop(r);
+    const again=app.querySelector(`.shopitem input[data-i="${c.dataset.i}"]`);if(again)again.focus();
+  });
+  app.querySelectorAll(".term").forEach(b=>b.onclick=()=>copyText(b.dataset.term,()=>{b.classList.add("ok");b.textContent="Copied: "+b.dataset.term;setTimeout(()=>{if(b.isConnected){b.classList.remove("ok");b.textContent=`Sixty60: ${b.dataset.term} ⧉`}},1800)}));
+  document.getElementById("unhave").onclick=()=>{store("have:"+r.id,[]);renderShop(r)};
+  document.getElementById("copyall").onclick=()=>{
+    const hv=new Set(store("have:"+r.id)||[]);
+    let txt=`PotjieBook shopping list: ${r.title}\n`;
+    for(const a of AISLES){
+      const list=items.filter(it=>it.aisle===a.key&&!hv.has(it.i));
+      if(list.length) txt+=`\n${a.af} / ${a.en}\n`+list.map(it=>`- ${it.t}`).join("\n")+"\n";
+    }
+    copyText(txt.trim(),()=>{document.getElementById("smsg").textContent="List copied. Paste it into WhatsApp or your notes."});
+  };
+}
+function copyText(text,onOk){
+  const fallback=()=>{
+    const box=document.getElementById("copyfallback");
+    if(!box) return;
+    box.innerHTML=`<p class="notice">Copying isn't allowed here. Press and hold the text below to copy it.</p><textarea class="copybox" id="cb" readonly></textarea>`;
+    const t=document.getElementById("cb");t.value=text;t.focus();t.select();
+  };
+  try{ navigator.clipboard.writeText(text).then(onOk,fallback) }catch(e){ fallback() }
+}
+
+async function toggleWake(){
+  const b=document.getElementById("wake");
+  try{
+    if(wakeLock){await wakeLock.release();wakeLock=null}
+    else{wakeLock=await navigator.wakeLock.request("screen");wakeLock.addEventListener("release",()=>{wakeLock=null;const w=document.getElementById("wake");if(w)w.textContent="Keep screen on while cooking"})}
+    b.textContent=wakeLock?"Screen stays on ✓":"Keep screen on while cooking";
+  }catch(e){b.textContent="This device won't keep the screen on";b.disabled=true}
+}
+
+function layersToText(layers){
+  return (layers||[]).map(l=>`# ${l.label}\n${(l.items||[]).join("\n")}`).join("\n\n");
+}
+function textToLayers(t){
+  const out=[];let cur=null;
+  t.split("\n").map(s=>s.trim()).forEach(line=>{
+    if(!line) return;
+    if(line.startsWith("#")){cur={label:line.replace(/^#+\s*/,"")||"Layer",items:[]};out.push(cur);return}
+    if(!cur){cur={label:"Ingredients",items:[]};out.push(cur)}
+    cur.items.push(line.replace(/^[-•*]\s*/,""));
+  });
+  return out.filter(l=>l.items.length);
+}
+const opt=(arr,v,lab)=>arr.map(o=>`<option value="${esc(o)}" ${o===v?"selected":""}>${o?esc(lab?lab(o):o):"—"}</option>`).join("");
+
+function openEditor(r){
+  view="edit";currentId=r?r.id:null;
+  const x=r||{kind:"Potjie",pot:MY_POT,heat:"Low coals",layers:[],steps:[]};
+  const pots=POTS.includes(x.pot||"")?POTS:[...POTS,x.pot];
+  app.innerHTML=`<div class="view">
+    <button class="back" type="button" id="cancelTop">← Terug</button>
+    <h1 class="rtitle">${r?"Edit recipe":"Nuwe resep"}</h1>
+    <form id="f" novalidate>
+      <div class="field"><label for="f-title">Name</label><input id="f-title" required value="${esc(x.title)}" placeholder="Oupa se oxtail potjie"></div>
+      <div class="row">
+        <div class="field"><label for="f-kind">Type</label><select id="f-kind">${opt(KINDS,x.kind,k=>`${KIND_AF[k]}`)}</select></div>
+        <div class="field"><label for="f-pot">Pot size</label><select id="f-pot">${opt(pots,x.pot||"")}</select></div>
+        <div class="field"><label for="f-serves">Feeds</label><input id="f-serves" inputmode="numeric" value="${esc(x.serves)}" placeholder="8"></div>
+        <div class="field"><label for="f-hours">Hours</label><input id="f-hours" inputmode="decimal" value="${esc(x.hours)}" placeholder="3"></div>
+      </div>
+      <div class="field"><label for="f-heat">Heat</label><select id="f-heat">${opt(HEAT.includes(x.heat||"")?HEAT:[...HEAT,x.heat],x.heat||"")}</select></div>
+      <div class="field"><label for="f-notes">Die storie · the story and tips</label><textarea id="f-notes" placeholder="Where it comes from, what to drink with it, what not to do.">${esc(x.notes)}</textarea></div>
+      <div class="field"><label for="f-ing">Ingredients, layer by layer</label>
+        <textarea class="tall" id="f-ing" placeholder="# Meat (brown first)\n1.5 kg oxtail\n2 onions, chopped\n\n# Hard veg\n6 carrots\n4 potatoes\n\n# Soft veg\n250 g mushrooms">${esc(layersToText(x.layers))}</textarea>
+        <span class="hint">Start a line with # to begin a new layer, bottom layer first. One ingredient per line.</span></div>
+      <div class="field"><label for="f-steps">Method</label>
+        <textarea class="tall" id="f-steps" placeholder="One step per line">${esc((x.steps||[]).join("\n"))}</textarea>
+        <span class="hint">One step per line.</span></div>
+      <div class="formbar"><button class="btn" type="submit" id="save">Save recipe</button><button class="btn ghost" type="button" id="cancel">Cancel</button><span class="msg" id="fmsg" role="status"></span></div>
+    </form></div>`;
+  window.scrollTo(0,0);
+  const cancel=()=>{if(r){view="detail";renderDetail(byId(r.id)||r)}else{view="list";render()}window.scrollTo(0,0)};
+  document.getElementById("cancel").onclick=cancel;
+  document.getElementById("cancelTop").onclick=cancel;
+  document.getElementById("f").addEventListener("submit",async e=>{
+    e.preventDefault();
+    const v=id=>document.getElementById(id).value.trim();
+    const msg=document.getElementById("fmsg");
+    if(!v("f-title")){msg.textContent="Give the recipe a name first.";document.getElementById("f-title").focus();return}
+    const data={title:v("f-title"),kind:v("f-kind"),pot:v("f-pot"),serves:v("f-serves"),hours:v("f-hours"),heat:v("f-heat"),
+      notes:v("f-notes"),layers:textToLayers(document.getElementById("f-ing").value),
+      steps:document.getElementById("f-steps").value.split("\n").map(s=>s.trim()).filter(Boolean),
+      example:false,updatedAt:Date.now()};
+    const btn=document.getElementById("save");btn.disabled=true;msg.textContent="Saving…";
+    try{
+      const col=db.collection("recipes");
+      let id=currentId;
+      if(id){ data.photos=(byId(id)?.photos)||[]; await col.doc(id).set(data) } else {const ref=col.doc();id=ref.id;await ref.set(data)}
+      currentId=id;view="detail";
+      const local=byId(id)||{id,...data};renderDetail({...local,...data,id});window.scrollTo(0,0);
+    }catch(err){
+      btn.disabled=false;
+      msg.textContent=err&&err.code==="quota_exceeded"?"The book is full. Delete a recipe to make room.":err&&err.code==="invalid_argument"?"You can view this book but not change it.":"Couldn't save. Check your connection and try again.";
+    }
+  });
+}
+
+document.getElementById("home").onclick=()=>{view="list";filter="All";render();window.scrollTo(0,0)};
+document.getElementById("newBtn").onclick=()=>openEditor(null);
+document.getElementById("camIn").addEventListener("change",onPicked);
+document.getElementById("galIn").addEventListener("change",onPicked);
+render();
+
+(async()=>{
+  try{ db = window.claude?.use ? await window.claude.use("db") : null }catch(e){ db=null }
+  if(!db){dbState="none";render();return}
+  try{
+    const user=await window.claude.use("user");
+    if(user){const c=await user.can("data.write"); if(c===false) canWrite=false}
+  }catch(e){}
+  db.collection("recipes").onSnapshot(s=>{
+    recipes=s.docs.map(d=>({id:d.id,...d.data()}));
+    dbState="ready";render();
+  },()=>{dbState=recipes.length?"ready":"none";render()});
+})();
+</script>
