@@ -1,5 +1,19 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>PotjieBook</title>
+<meta name="description" content="A South African potjiekos cookbook. In die pot, vanuit die hart.">
 <meta name="claude:viewport-fit-sides" content="cover">
+<meta name="theme-color" content="#0B0B0B">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PotjieBook">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Alfa+Slab+One&family=Atkinson+Hyperlegible:wght@400;700&family=Courier+Prime:wght@400;700&family=Caveat:wght@600;700&display=swap">
@@ -182,6 +196,7 @@ form{display:flex;flex-direction:column;gap:16px}
 .look:hover{text-decoration:underline}
 .toolbar .look{align-self:center}
 .fab{position:fixed;right:calc(16px + env(safe-area-inset-right,0px));bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:6;display:inline-flex;align-items:center;gap:8px;border:0;border-radius:999px;padding:14px 20px;font-weight:700;font-size:17px;cursor:pointer;background:var(--accent);color:var(--accent-ink);box-shadow:0 4px 16px rgba(0,0,0,.35),inset 0 -3px 0 var(--mielie)}
+[hidden]{display:none!important}
 .sheet{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center}
 .sheet .panel{background:var(--surface);color:var(--ink);width:100%;max-width:560px;max-height:88%;overflow:auto;border-radius:14px 14px 0 0;box-sizing:border-box;display:flex;flex-direction:column;gap:10px;padding-top:18px;padding-bottom:calc(18px + env(safe-area-inset-bottom,0px));padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .sheettitle{font-family:var(--display);font-weight:400;font-size:24px;margin:0}
@@ -193,7 +208,11 @@ form{display:flex;flex-direction:column;gap:16px}
 .sheet .big{width:100%;max-width:100%;max-height:62vh;object-fit:contain;border-radius:8px;background:#000}
 footer{text-align:center;padding-block:8px 32px;color:var(--muted);font-family:var(--hand);font-size:21px}
 @media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s,transform .15s}.card:hover{transform:rotate(-.6deg)}}
+.backup{display:flex;flex-direction:column;gap:10px;margin-top:28px;padding-top:16px;border-top:1.5px dashed var(--line)}
+.backup .sec{margin:0}
 </style>
+</head>
+<body>
 
 <header class="top"><div class="wrap">
   <button class="brand" id="home" type="button">PotjieBook<small>In die pot, vanuit die hart</small></button>
@@ -223,6 +242,93 @@ const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&
 const layerColor=i=>`var(--l${(i%5)+1})`;
 const byId=id=>recipes.find(r=>r.id===id);
 function store(k,v){try{if(v===undefined)return JSON.parse(localStorage.getItem(k)||"null");localStorage.setItem(k,JSON.stringify(v))}catch(e){return null}}
+
+/* ---- On-phone book: used when PotjieBook runs outside Claude (installed app or browser).
+   Same shape as the artifact db/assets so the rest of the app doesn't care where recipes live. ---- */
+const LOCAL_URLS={};
+let local=null;
+const idbReq=r=>new Promise((res,rej)=>{r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+async function localBook(){
+  const idb=await new Promise((res,rej)=>{
+    const q=indexedDB.open("potjiebook",1);
+    q.onupgradeneeded=()=>{["recipes","photos","meta"].forEach(n=>q.result.createObjectStore(n))};
+    q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);
+  });
+  const os=(name,mode="readonly")=>idb.transaction(name,mode).objectStore(name);
+  const run=async p=>{try{return await p}catch(e){throw e&&e.name==="QuotaExceededError"?{code:"quota_exceeded"}:e}};
+  const newId=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,8);
+  const listeners=new Set();
+  async function all(){
+    const st=os("recipes");
+    const [keys,vals]=await Promise.all([idbReq(st.getAllKeys()),idbReq(st.getAll())]);
+    return keys.map((id,i)=>({id,...vals[i]}));
+  }
+  async function emit(){
+    const list=await all();
+    for(const r of list) for(const p of r.photos||[]){
+      if(LOCAL_URLS[p.id]||!String(p.id).startsWith("local-")) continue;
+      const b=await idbReq(os("photos").get(p.id)); if(b) LOCAL_URLS[p.id]=URL.createObjectURL(b);
+    }
+    const snap={docs:list.map(({id,...d})=>({id,data:()=>d}))};
+    listeners.forEach(l=>l(snap));
+  }
+  const putPhoto=async(id,blob)=>{await run(idbReq(os("photos","readwrite").put(blob,id)));LOCAL_URLS[id]=URL.createObjectURL(blob)};
+  const dropPhoto=async id=>{await idbReq(os("photos","readwrite").delete(id));if(LOCAL_URLS[id]){URL.revokeObjectURL(LOCAL_URLS[id]);delete LOCAL_URLS[id]}};
+  const doc=id=>({id,
+    async set(data){await run(idbReq(os("recipes","readwrite").put(data,id)));await emit()},
+    async update(part){const cur=await idbReq(os("recipes").get(id));await run(idbReq(os("recipes","readwrite").put({...cur,...part},id)));await emit()},
+    async delete(){
+      const cur=await idbReq(os("recipes").get(id));
+      for(const p of cur?.photos||[]) if(String(p.id).startsWith("local-")) await dropPhoto(p.id);
+      await idbReq(os("recipes","readwrite").delete(id));await emit();
+    }});
+  const book={
+    collection:()=>({doc:id=>doc(id||newId()),onSnapshot(cb,err){listeners.add(cb);emit().catch(err)}}),
+    assets:{async upload(blob){const id="local-"+newId();await putPhoto(id,blob);return {id,url:""}},delete:dropPhoto},
+    async exportAll(){
+      const recipes=await all(), photos={};
+      for(const r of recipes) for(const p of r.photos||[]){
+        const b=String(p.id).startsWith("local-")&&await idbReq(os("photos").get(p.id));
+        if(b) photos[p.id]=await new Promise(res=>{const fr=new FileReader();fr.onload=()=>res(fr.result);fr.readAsDataURL(b)});
+      }
+      return {app:"PotjieBook",version:1,exportedAt:new Date().toISOString(),recipes,photos};
+    },
+    // Takes a PotjieBook backup, a list of recipes, or one recipe (like the files in data/recipes/).
+    async importData(obj){
+      const list=Array.isArray(obj)?obj:Array.isArray(obj?.recipes)?obj.recipes:obj&&obj.title?[obj]:null;
+      if(!list) throw {code:"bad_file"};
+      for(const [id,url] of Object.entries(obj.photos||{})) await putPhoto(id,await (await fetch(url)).blob());
+      for(const r of list){
+        if(!r||!r.title) continue;
+        const {id,...data}=r;
+        await run(idbReq(os("recipes","readwrite").put(data,id||newId())));
+      }
+      await emit();
+      return list.length;
+    }
+  };
+  // First open: fill the book with the recipes that ship with the app.
+  if(!(await idbReq(os("meta").get("seeded")))){
+    try{
+      const names=await (await fetch("data/recipes/index.json")).json();
+      for(const n of names){
+        const r=await (await fetch(`data/recipes/${n}.json`)).json();
+        await idbReq(os("recipes","readwrite").put(r,n));
+      }
+      await idbReq(os("meta","readwrite").put(true,"seeded"));
+    }catch(e){}
+  }
+  return book;
+}
+function download(name,text){
+  const a=document.createElement("a");
+  a.href=URL.createObjectURL(new Blob([text],{type:"application/json"}));
+  a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},1000);
+}
+let installPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();installPrompt=e;if(view==="list")renderList()});
+const isInstalled=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
 
 const BANNER=`<svg viewBox="0 0 400 150" preserveAspectRatio="xMinYMax slice" aria-hidden="true">
 <defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--sky1)"/><stop offset="1" style="stop-color:var(--sky2)"/></linearGradient></defs>
@@ -266,7 +372,9 @@ function renderList(){
   const sub = dbState==="loading" ? "Die kole word warm gemaak…" : `${n} resep${n===1?"":"te"} · ${pj} potjie${pj===1?"":"s"} in the book`;
   let html=`<div class="view"><div class="karoo">${BANNER}<div class="say"><b>In die pot, vanuit die hart</b><span>${esc(sub)}</span></div></div>`;
   if(dbState==="none"){
-    html+=`<div class="empty"><strong>Recipes can't load here</strong>Open this cookbook from your Claude app or claude.ai while signed in to see and save your recipes.</div></div>`;
+    html+=local===false
+      ?`<div class="empty"><strong>Recipes can't be saved here</strong>This browser won't let PotjieBook keep recipes on the phone. Turn off private browsing, or open PotjieBook in Chrome or Safari.</div></div>`
+      :`<div class="empty"><strong>Recipes can't load here</strong>Open this cookbook from your Claude app or claude.ai while signed in to see and save your recipes.</div></div>`;
     app.innerHTML=html; return;
   }
   html+=`<input class="search" id="q" type="search" placeholder="Search recipes or ingredients · Soek" value="${esc(query)}" aria-label="Search recipes">`;
@@ -287,18 +395,56 @@ function renderList(){
       <span class="meta">${esc(metaLine(r))||"&nbsp;"}</span>
       ${r.example?`<span class="tag">voorbeeld · example</span>`:""}
     </button>`).join("")}</div>`;
+  if(local&&dbState==="ready"){
+    html+=`<section class="backup" aria-labelledby="bk"><h2 class="sec" id="bk">Backup <span>rugsteun · your recipes live on this phone</span></h2>
+      <p class="notice">Save a backup now and then (photos included) and keep it in your Drive or WhatsApp it to yourself. Load it on a new phone to bring the whole book along.</p>
+      <div class="toolbar">
+        <button class="btn ghost" type="button" id="bkSave">Save backup</button>
+        <label class="btn ghost" for="bkIn" role="button" tabindex="0" id="bkLoad">Load backup or recipe</label>
+        ${installPrompt&&!isInstalled()?`<button class="btn" type="button" id="install">Install PotjieBook</button>`:""}
+      </div>
+      ${!installPrompt&&!isInstalled()&&/iphone|ipad/i.test(navigator.userAgent)?`<p class="notice">To install on iPhone: tap Share, then <b>Add to Home Screen</b>.</p>`:""}
+      <input type="file" class="vh" id="bkIn" accept="application/json,.json" tabindex="-1" aria-hidden="true">
+      <p class="msg" id="bkmsg" role="status"></p></section>`;
+  }
   html+=`</div>`;
   app.innerHTML=html;
+  if(local&&dbState==="ready") wireBackup();
   const q=document.getElementById("q");
   q.addEventListener("input",e=>{query=e.target.value;const pos=e.target.selectionStart;renderList();const nq=document.getElementById("q");nq.focus();nq.setSelectionRange(pos,pos)});
   app.querySelectorAll(".chip").forEach(b=>b.onclick=()=>{filter=b.dataset.k;renderList()});
   app.querySelectorAll(".card").forEach(b=>b.onclick=()=>openRecipe(b.dataset.id));
 }
 
+function wireBackup(){
+  const msg=document.getElementById("bkmsg");
+  document.getElementById("bkSave").onclick=async()=>{
+    try{
+      const data=await local.exportAll();
+      download(`PotjieBook-backup-${new Date().toISOString().slice(0,10)}.json`,JSON.stringify(data));
+      msg.textContent=`Backup saved with ${data.recipes.length} resep${data.recipes.length===1?"":"te"}. Keep it somewhere safe.`;
+    }catch(e){msg.textContent="Couldn't make the backup. Try again."}
+  };
+  document.getElementById("bkLoad").addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();document.getElementById("bkIn").click()}});
+  document.getElementById("bkIn").onchange=async e=>{
+    const f=e.target.files?.[0]; if(!f) return;
+    msg.textContent="Loading…";
+    try{
+      const n=await local.importData(JSON.parse(await f.text()));
+      document.getElementById("bkmsg")&&(document.getElementById("bkmsg").textContent=`${n} resep${n===1?"":"te"} loaded. Smaaklike ete!`);
+    }catch(err){
+      const m=document.getElementById("bkmsg");
+      if(m) m.textContent=err&&err.code==="quota_exceeded"?"The phone is out of space for PotjieBook.":"That file isn't a PotjieBook backup or recipe.";
+    }
+  };
+  const ins=document.getElementById("install");
+  if(ins) ins.onclick=async()=>{const p=installPrompt;installPrompt=null;await p.prompt();renderList()};
+}
+
 function openRecipe(id){currentId=id;view="detail";renderDetail(byId(id));window.scrollTo(0,0)}
 
 const isSide=l=>/^(on the side|side|bykos)/i.test((l.label||"").trim());
-const photoSrc=p=>p.url||("/_blob/"+p.id);
+const photoSrc=p=>LOCAL_URLS[p.id]||p.url||("/_blob/"+p.id);
 const IMG_SEARCH=q=>"https://www.google.com/search?tbm=isch&q="+encodeURIComponent(q);
 function lookQuery(step,r){
   const s=step.toLowerCase();
@@ -448,7 +594,7 @@ function openSheet(){
       close();
     }catch(err){
       sheet.querySelectorAll("button").forEach(x=>x.disabled=false);
-      msg.textContent=err&&err.code==="no_assets"?"Photos can't be saved from here. Open PotjieBook in your Claude app or claude.ai, signed in.":"Couldn't save the photo. Check your connection and try again.";
+      msg.textContent=err&&err.code==="no_assets"?"Photos can't be saved from here. Open PotjieBook in your Claude app or claude.ai, signed in.":err&&err.code==="quota_exceeded"?"The phone is out of space for photos.":"Couldn't save the photo. Check your connection and try again.";
     }
   });
 }
@@ -636,15 +782,25 @@ document.getElementById("galIn").addEventListener("change",onPicked);
 render();
 
 (async()=>{
-  try{ db = window.claude?.use ? await window.claude.use("db") : null }catch(e){ db=null }
-  if(!db){dbState="none";render();return}
-  try{
-    const user=await window.claude.use("user");
-    if(user){const c=await user.can("data.write"); if(c===false) canWrite=false}
-  }catch(e){}
+  if(window.claude?.use){
+    try{ db = await window.claude.use("db") }catch(e){ db=null }
+    if(!db){dbState="none";render();return}
+    try{
+      const user=await window.claude.use("user");
+      if(user){const c=await user.can("data.write"); if(c===false) canWrite=false}
+    }catch(e){}
+  }else{
+    try{ local=await localBook() }catch(e){ local=false }
+    if(!local){dbState="none";render();return}
+    db=local; assetsNS=local.assets; assetsTried=true;
+    try{ navigator.storage?.persist?.() }catch(e){}
+    if("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(()=>{});
+  }
   db.collection("recipes").onSnapshot(s=>{
     recipes=s.docs.map(d=>({id:d.id,...d.data()}));
     dbState="ready";render();
   },()=>{dbState=recipes.length?"ready":"none";render()});
 })();
 </script>
+</body>
+</html>

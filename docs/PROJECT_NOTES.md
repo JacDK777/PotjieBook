@@ -7,7 +7,7 @@ Everything decided while building PotjieBook with Claude, so the work can carry 
 - **Tagline and slogan:** *In die pot, vanuit die hart*
 - **Language:** English, with Afrikaans flair (Alles, Bestanddele, Metode, Moenie roer nie!, Nuwe resep, Terug, Seker?, Die boek is leeg, Smaaklike ete!)
 - **Live app:** https://claude.ai/artifact/8kwkRckH34jfP8URVAcLBq
-- **Code:** `index.html` is the whole app. It runs as a Claude artifact.
+- **Code:** `index.html` is the whole app. It runs as a Claude artifact and as an installable phone app (PWA) on GitHub Pages.
 
 ## Look and feel
 - South African flag colours: black top bar, gold/green/white stripe under it, chilli red accents, flag blue filters, flag green for ticked steps
@@ -49,12 +49,16 @@ Photos: `docs/pots/`. To get an exact 8B size, fill it with a 1-litre jug to abo
 ## Known limits
 - **Sixty60:** Checkers has no public way for other apps to fill the Sixty60 trolley or check stock, so the app gives copyable search words instead.
 - **Internet photos:** the app can't show photos from other websites (blocked in artifacts, and the photos belong to those sites). Hence the Kiekie photos and image-search links.
-- **Kiekie camera:** the first version used a hidden picker that some phones block. Now the buttons open the picker directly. Needs testing on the phone; if the Claude app won't open the camera, use PotjieBook in the phone's browser.
+- **Kiekie camera:** the first version used a hidden picker that some phones block. Now the buttons open the picker directly. Needs testing on the phone; if the Claude app won't open the camera, use the installed phone app.
+- **Phone app storage:** recipes and photos live only on that phone. Clearing the browser's site data or uninstalling deletes them, so save a backup now and then. The app asks the browser to keep its data, but iPhones can still clear it if the app goes unused for weeks.
+- **Two books:** the Claude artifact and the phone app don't sync with each other.
 
 ## Where the data lives
-- Recipes live in the artifact's database (`recipes` collection), and photos in its asset store. Neither is stored in this repo automatically.
-- `data/recipes/*.json` is an export of the recipes as of 25 October 2026. `recipes/*.md` are readable copies.
-- Changes in this repo don't update the live app, and changes in the live app don't update this repo.
+- **Claude artifact:** recipes live in the artifact's database (`recipes` collection), and photos in its asset store.
+- **Phone app:** recipes and photos live in the phone's browser storage (IndexedDB database `potjiebook`, with stores `recipes`, `photos` and `meta`). Photo ids start with `local-`. The first time it opens it loads the recipes listed in `data/recipes/index.json`.
+- Neither is stored in this repo automatically. `data/recipes/*.json` is an export of the Claude recipes as of 25 October 2026. `recipes/*.md` are readable copies.
+- A phone backup file is JSON: `{app:"PotjieBook", version:1, exportedAt, recipes:[{id, ...recipe}], photos:{id: dataURL}}`. *Load backup or recipe* also takes one recipe or a list of recipes.
+- Changes in this repo don't update the Claude app. They reach the phone app when merged to `main` (bump `VERSION` in `sw.js`).
 
 ## Recipe data fields
 `title, kind, pot, serves, hours, heat, notes, layers[{label, items[]}], steps[], photos[{id, url, step: number|"general", at}], example, updatedAt`
@@ -82,3 +86,4 @@ Sources: [OFM / Lamb and Mutton SA](https://ofm.co.za/article/the-source/259559/
 8. Kiekie photos and image-search links; side dishes kept out of the pot diagram
 9. Kiekie camera fix
 10. Code and everything so far put in this repo
+11. Phone app: installable PWA on GitHub Pages, works offline, recipes and photos kept on the phone, backup and restore
