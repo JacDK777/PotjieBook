@@ -1,0 +1,81 @@
+{
+  "example": false,
+  "heat": "Medium-hot coals",
+  "hours": "10–12 min",
+  "kind": "Braai",
+  "layers": [
+    {
+      "items": [
+        "{1.2} kg skinless chicken breast fillets, cut into 3 cm cubes"
+      ],
+      "label": "Chicken"
+    },
+    {
+      "items": [
+        "{250} ml plain Greek yoghurt",
+        "{125} ml olive oil",
+        "Zest and juice of {2} lemon[s]",
+        "{6} garlic clove[s], crushed",
+        "{2} handful[s] fresh mint (about {30} g), finely chopped",
+        "{4} Tbsp fresh oregano, chopped (or {4} tsp dried)",
+        "{2} tsp salt",
+        "{1} tsp black pepper"
+      ],
+      "label": "Marinade and sauce (half for marinating, half for the sauce)"
+    },
+    {
+      "items": [
+        "{2} red onion[s], in wedges",
+        "{1} green pepper[s], in chunks",
+        "{1} red pepper[s], in chunks",
+        "{250} g cherry tomatoes ({1} punnet[s])",
+        "{12} sosatie sticks"
+      ],
+      "label": "On the skewer"
+    },
+    {
+      "items": [
+        "{1} lemon[s], in wedges"
+      ],
+      "label": "To serve"
+    },
+    {
+      "items": [
+        "{250} g plain Greek yoghurt",
+        "{½} English cucumber, grated and squeezed dry",
+        "{1} garlic clove[s], crushed",
+        "{1} Tbsp fresh mint, finely chopped",
+        "Juice of {¼} lemon",
+        "Salt and pepper"
+      ],
+      "label": "Mint tzatziki (optional extra)"
+    }
+  ],
+  "notes": "Chicken breast marinated in yoghurt, lemon, mint, oregano and garlic, threaded with red onion, peppers and cherry tomatoes. Half the marinade is kept back before the chicken goes in, so there's plenty of clean sauce to brush on and pour over. Marinate at least 2 hours, or overnight. Built together from Drizzle and Dip, Daily Maverick, RecipeTin Eats and Rock Recipes.",
+  "photos": [],
+  "pot": "",
+  "serves": "6",
+  "steps": [
+    "Mix all the marinade ingredients. Pour half into a separate bowl, cover and refrigerate. This is your sauce.",
+    "Coat the chicken in the other half, cover and refrigerate for at least 2 hours, or overnight.",
+    "Soak the sosatie sticks in water for 30 minutes so they don't burn.",
+    "Thread the chicken onto the sticks with red onion, green pepper, red pepper and cherry tomatoes in between. Keep the chicken pieces the same size so they cook evenly.",
+    "Take the sauce out of the fridge about 30 minutes before braaiing so it isn't ice cold. If you want it warm, heat it gently at the edge of the fire, but don't let it boil or the yoghurt will split.",
+    "Optional: make the tzatziki. Squeeze as much water as you can out of the grated cucumber, then mix it with the other tzatziki ingredients and season to taste.",
+    "Braai over medium-hot coals for 10–12 minutes, turning often, until the chicken is just cooked through and charred at the edges. Breast dries out fast, so take it off as soon as it's done.",
+    "In the last 2–3 minutes, brush the sosaties with some of the sauce, using a clean brush.",
+    "Serve with the rest of the sauce poured over, lemon wedges on the side, and the tzatziki if you made it."
+  ],
+  "title": "Greek Mint Chicken Sosaties",
+  "updatedAt": 1794654000000,
+  "yield": {
+    "base": 12,
+    "options": [
+      4,
+      6,
+      12,
+      24
+    ],
+    "unit": "sosaties"
+  }
+}

@@ -206,6 +206,10 @@ form{display:flex;flex-direction:column;gap:16px}
 .sheet .opt b{font-family:var(--type);font-weight:700;color:var(--fynbos)}
 .sheet .opt span{font-size:14px;color:var(--ink)}
 .sheet .big{width:100%;max-width:100%;max-height:62vh;object-fit:contain;border-radius:8px;background:#000}
+.yieldbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-weight:700}
+.yieldbar label{font-family:var(--type);font-size:14px;color:var(--muted)}
+.yieldbar select{font:inherit;font-weight:700;font-size:18px;padding:8px 12px;border:2px solid var(--blou);border-radius:8px;background:var(--surface);color:var(--ink)}
+.yieldbar span{font-family:var(--display);font-weight:400;font-size:20px}
 footer{text-align:center;padding-block:8px 32px;color:var(--muted);font-family:var(--hand);font-size:21px}
 @media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s,transform .15s}.card:hover{transform:rotate(-.6deg)}}
 .backup{display:flex;flex-direction:column;gap:10px;margin-top:28px;padding-top:16px;border-top:1.5px dashed var(--line)}
@@ -307,17 +311,23 @@ async function localBook(){
       return list.length;
     }
   };
-  // First open: fill the book with the recipes that ship with the app.
-  if(!(await idbReq(os("meta").get("seeded")))){
-    try{
-      const names=await (await fetch("data/recipes/index.json")).json();
-      for(const n of names){
-        const r=await (await fetch(`data/recipes/${n}.json`)).json();
-        await idbReq(os("recipes","readwrite").put(r,n));
-      }
-      await idbReq(os("meta","readwrite").put(true,"seeded"));
-    }catch(e){}
-  }
+  // Add recipes that ship with the app. Each one is added once, so later
+  // edits or deletes on the phone are kept, and new recipes in the repo still arrive.
+  try{
+    const names=await (await fetch("data/recipes/index.json")).json();
+    let done=await idbReq(os("meta").get("seededIds"));
+    if(!Array.isArray(done)) done=(await idbReq(os("meta").get("seeded")))?["lamb-potjie-chunky-veg","example-oxtail","example-potbrood"]:[];
+    let added=false;
+    for(const n of names){
+      if(done.includes(n)) continue;
+      const r=await (await fetch(`data/recipes/${n}.json`)).json();
+      await idbReq(os("recipes","readwrite").put(r,n));
+      done.push(n); added=true;
+    }
+    await idbReq(os("meta","readwrite").put(done,"seededIds"));
+    await idbReq(os("meta","readwrite").put(true,"seeded"));
+    if(added) await emit();
+  }catch(e){}
   return book;
 }
 function download(name,text){
@@ -352,10 +362,49 @@ const BANNER=`<svg viewBox="0 0 400 150" preserveAspectRatio="xMinYMax slice" ar
 <polygon points="0,24 51,75 0,126" style="fill:var(--flag-black)"/>
 </svg>`;
 
+/* ---- Scaling ({…} marks amounts that scale) ---- */
+const FR=[[0.25,"¼"],[1/3,"⅓"],[0.5,"½"],[2/3,"⅔"],[0.75,"¾"]];
+const FRMAP={"½":.5,"¼":.25,"¾":.75,"⅓":1/3,"⅔":2/3};
+function parseNum(s){
+  s=String(s).trim();
+  let m=s.match(/^(\d+(?:\.\d+)?)?\s*([½¼¾⅓⅔])?$/);
+  if(m&&(m[1]||m[2])) return (m[1]?+m[1]:0)+(m[2]?FRMAP[m[2]]:0);
+  m=s.match(/^(\d+)\/(\d+)$/); if(m) return m[1]/m[2];
+  return NaN;
+}
+function fmtNum(v){
+  if(Math.abs(v-Math.round(v))<1e-9) return String(Math.round(v));
+  if(v>=20) return String(Math.round(v/5)*5);
+  if(v>=3){const r=Math.round(v*2)/2;return r%1?Math.floor(r)+"½":String(r)}
+  if(v<0.25) return "¼";
+  const w=Math.floor(v),f=v-w;let best="",d=f;
+  for(const [x,sym] of FR){if(Math.abs(f-x)<d){d=Math.abs(f-x);best=sym}}
+  if(1-f<d) return String(w+1);
+  return (w?String(w):"")+best||"0";
+}
+/* {n} marks a scalable amount; word[s] adds the ending only when the amount before it is more than 1 */
+function scaleText(t,k){
+  let last=null;
+  return String(t??"").replace(/\{([^}]+)\}(\s*kg\b)?|\[(\w+)\]/g,(m,n,kg,suf)=>{
+    if(suf!==undefined) return last!==null&&last>1?suf:"";
+    const v=parseNum(n);
+    if(isNaN(v)){last=null;return n+(kg||"")}
+    const x=v*k; last=x;
+    if(k===1) return n+(kg||"");
+    if(kg) return x<1?Math.round(x*1000/50)*50+" g":(Math.round(x*10)/10)+" kg";
+    const out=fmtNum(x); last=parseNum(out)||x; return out;
+  });
+}
+const plain=t=>scaleText(t,1);
+function yieldCount(r){if(!r.yield)return null;const c=store("yield:"+r.id);return (r.yield.options||[]).includes(c)?c:r.yield.base}
+function scaleOf(r){const c=yieldCount(r);return c?c/r.yield.base:1}
+function feedsText(r,k){const n=parseNum(r.serves);if(isNaN(n)||k===1)return r.serves||"";return fmtNum(n*k)}
+const hoursText=h=>!h?"":/[a-z]/i.test(h)?h:h+" h";
+
 function metaLine(r){
   const bits=[];
   if(r.serves) bits.push(`Feeds ${r.serves}`);
-  if(r.hours) bits.push(`${r.hours} h on the coals`);
+  if(r.hours) bits.push(`${hoursText(r.hours)} on the coals`);
   return bits.join(" · ");
 }
 
@@ -383,7 +432,7 @@ function renderList(){
   const ql=query.trim().toLowerCase();
   const list=recipes
     .filter(r=>filter==="All"||r.kind===filter)
-    .filter(r=>!ql||[r.title,r.notes,...(r.layers||[]).flatMap(l=>[l.label,...(l.items||[])])].join(" ").toLowerCase().includes(ql))
+    .filter(r=>!ql||[r.title,r.notes,...(r.layers||[]).flatMap(l=>[l.label,...(l.items||[]).map(plain)])].join(" ").toLowerCase().includes(ql))
     .sort((a,b)=>(a.kind==="Potjie"?0:1)-(b.kind==="Potjie"?0:1)||String(a.title).localeCompare(b.title));
   if(dbState==="loading") html+=`<div class="empty">Die kole word warm gemaak… loading your recipes.</div>`;
   else if(!recipes.length) html+=`<div class="empty"><strong>Die boek is leeg</strong>Tap <b>+ New recipe</b> to add your first potjie.<em>Kom ons begin!</em></div>`;
@@ -462,6 +511,7 @@ const thumbs=list=>list.length?`<div class="thumbs">${list.map(p=>`<button type=
 function renderDetail(r){
   const layers=(r.layers||[]).filter(l=>(l.items||[]).length);
   const potLayers=layers.filter(l=>!isSide(l));
+  const k=scaleOf(r), yc=yieldCount(r);
   const colorOf=l=>{const i=potLayers.indexOf(l);return i<0?null:layerColor(i)};
   const done=store("done:"+r.id)||[];
   const showPot=r.kind==="Potjie"&&potLayers.length>1;
@@ -475,10 +525,11 @@ function renderDetail(r){
     <h1 class="rtitle">${esc(r.title)}</h1></div>
     <dl class="facts">
       <div><dt>Pot${MY_POTS.includes(r.pot)?" · jou pot":""}</dt><dd>${esc(r.pot||"—")}${POT_INFO[r.pot]?`<small style="display:block;font-weight:400;font-size:12px;color:var(--muted)">${esc(POT_INFO[r.pot])}</small>`:""}</dd></div>
-      <div><dt>Feeds</dt><dd>${esc(r.serves||"—")}</dd></div>
-      <div><dt>On the coals</dt><dd>${r.hours?esc(r.hours)+" h":"—"}</dd></div>
+      <div><dt>Feeds</dt><dd>${esc(feedsText(r,k)||"—")}</dd></div>
+      <div><dt>On the coals</dt><dd>${esc(hoursText(r.hours)||"—")}</dd></div>
       <div><dt>Heat</dt><dd>${esc(r.heat||"—")}</dd></div>
     </dl>
+    ${yc?`<div class="yieldbar"><label for="yieldSel">Make</label><select id="yieldSel">${r.yield.options.map(o=>`<option value="${o}" ${o===yc?"selected":""}>${o}</option>`).join("")}</select><span>${esc(r.yield.unit||"")}</span></div>`:""}
     ${layers.length?`<button class="btn shop" type="button" id="shop">Nou gaan ons Shop!</button>`:""}
     ${r.notes?`<p class="story">${esc(r.notes)}</p>`:""}
     <h2 class="sec">Kiekies <span>photos of this potjie</span></h2>
@@ -500,7 +551,7 @@ function renderDetail(r){
   }
   h+=`<h2 class="sec">Ingredients <span>bestanddele</span></h2><div class="ing">${layers.map(l=>{const c=colorOf(l);return `
     <div>${layers.length>1||l.label!=="Ingredients"?`<h4>${c?`<b style="background:${c}"></b>`:""}${esc(l.label)}</h4>`:""}
-    <ul>${l.items.map(it=>`<li>${esc(it)}</li>`).join("")}</ul></div>`}).join("")||`<p class="notice">No ingredients yet.</p>`}</div>`;
+    <ul>${l.items.map(it=>`<li>${esc(scaleText(it,k))}</li>`).join("")}</ul></div>`}).join("")||`<p class="notice">No ingredients yet.</p>`}</div>`;
   h+=`<h2 class="sec">Method <span>metode · tap each step when it's done</span></h2>
     <ol class="steps">${(r.steps||[]).map((s,i)=>`<li><label><input type="checkbox" data-i="${i}" ${done.includes(i)?"checked":""}><span class="n"></span><span>${esc(s)}</span></label>
       <div class="extra">${thumbs(photos.filter(p=>p.step===i))}<a class="look" href="${esc(IMG_SEARCH(lookQuery(s,r)))}" target="_blank" rel="noopener">Kyk hoe lyk dit ↗</a></div></li>`).join("")}</ol>
@@ -518,6 +569,8 @@ function renderDetail(r){
     const d=[...app.querySelectorAll(".steps input:checked")].map(x=>+x.dataset.i);store("done:"+r.id,d)});
   document.getElementById("reset").onclick=()=>{store("done:"+r.id,[]);renderDetail(r)};
   document.getElementById("wake").onclick=toggleWake;
+  const ys=document.getElementById("yieldSel");
+  if(ys) ys.onchange=()=>{store("yield:"+r.id,+ys.value);const y=window.scrollY;renderDetail(r);window.scrollTo(0,y);document.getElementById("yieldSel")?.focus()};
   const sb=document.getElementById("shop");
   if(sb) sb.onclick=()=>{view="shop";renderShop(r);window.scrollTo(0,0)};
   app.querySelectorAll(".ph").forEach(b=>b.onclick=()=>openPhoto(r.id,b.dataset.ph));
@@ -647,14 +700,15 @@ function searchTerm(line){
   return s||line;
 }
 function renderShop(r){
-  const items=(r.layers||[]).flatMap(l=>l.items||[]).map((t,i)=>({t,i,term:searchTerm(t),aisle:aisleOf(t)}));
+  const k=scaleOf(r), yc=yieldCount(r);
+  const items=(r.layers||[]).flatMap(l=>l.items||[]).map((t,i)=>{t=scaleText(t,k);return {t,i,term:searchTerm(t),aisle:aisleOf(t)}});
   const have=new Set(store("have:"+r.id)||[]);
   const toBuy=items.filter(it=>!have.has(it.i)).length;
   let h=`<div class="view">
     <button class="back" type="button" id="back">← Terug na die resep</button>
     <div class="shophead"><div class="kicker">Inkopielys · Shopping list</div>
     <h1 class="rtitle">Nou gaan ons Shop!</h1>
-    <div class="tally" id="tally"><b>${toBuy}</b> to buy for ${esc(r.title)} · ${items.length-toBuy} already in the kas</div></div>
+    <div class="tally" id="tally"><b>${toBuy}</b> to buy for ${esc(r.title)}${yc?` (${yc} ${esc(r.yield.unit||"")})`:""} · ${items.length-toBuy} already in the kas</div></div>
     <p class="notice">Tick off what you already have. Sixty60 doesn't let other apps fill your trolley, so tap the blue search word to copy it, then paste it into the Sixty60 search.</p>`;
   for(const a of AISLES){
     const list=items.filter(it=>it.aisle===a.key);
@@ -742,7 +796,7 @@ function openEditor(r){
       <div class="field"><label for="f-notes">Die storie · the story and tips</label><textarea id="f-notes" placeholder="Where it comes from, what to drink with it, what not to do.">${esc(x.notes)}</textarea></div>
       <div class="field"><label for="f-ing">Ingredients, layer by layer</label>
         <textarea class="tall" id="f-ing" placeholder="# Meat (brown first)\n1.5 kg oxtail\n2 onions, chopped\n\n# Hard veg\n6 carrots\n4 potatoes\n\n# Soft veg\n250 g mushrooms">${esc(layersToText(x.layers))}</textarea>
-        <span class="hint">Start a line with # to begin a new layer, bottom layer first. One ingredient per line.</span></div>
+        <span class="hint">Start a line with # to begin a new layer, bottom layer first. One ingredient per line. Put { } around amounts that should change when the recipe is scaled, like {1.2} kg chicken, and [s] after a word that changes with the amount, like {2} lemon[s].</span></div>
       <div class="field"><label for="f-steps">Method</label>
         <textarea class="tall" id="f-steps" placeholder="One step per line">${esc((x.steps||[]).join("\n"))}</textarea>
         <span class="hint">One step per line.</span></div>
@@ -765,7 +819,7 @@ function openEditor(r){
     try{
       const col=db.collection("recipes");
       let id=currentId;
-      if(id){ data.photos=(byId(id)?.photos)||[]; await col.doc(id).set(data) } else {const ref=col.doc();id=ref.id;await ref.set(data)}
+      if(id){ data.photos=(byId(id)?.photos)||[]; if(byId(id)?.yield) data.yield=byId(id).yield; await col.doc(id).set(data) } else {const ref=col.doc();id=ref.id;await ref.set(data)}
       currentId=id;view="detail";
       const local=byId(id)||{id,...data};renderDetail({...local,...data,id});window.scrollTo(0,0);
     }catch(err){

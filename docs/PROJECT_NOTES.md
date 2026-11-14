@@ -56,14 +56,25 @@ Photos: `docs/pots/`. To get an exact 8B size, fill it with a 1-litre jug to abo
 ## Where the data lives
 - **Claude artifact:** recipes live in the artifact's database (`recipes` collection), and photos in its asset store.
 - **Phone app:** recipes and photos live in the phone's browser storage (IndexedDB database `potjiebook`, with stores `recipes`, `photos` and `meta`). Photo ids start with `local-`. The first time it opens it loads the recipes listed in `data/recipes/index.json`.
-- Neither is stored in this repo automatically. `data/recipes/*.json` is an export of the Claude recipes as of 25 October 2026. `recipes/*.md` are readable copies.
+- Neither is stored in this repo automatically. `data/recipes/*.json` is an export of the Claude recipes as of 14 November 2026. `recipes/*.md` are readable copies.
 - A phone backup file is JSON: `{app:"PotjieBook", version:1, exportedAt, recipes:[{id, ...recipe}], photos:{id: dataURL}}`. *Load backup or recipe* also takes one recipe or a list of recipes.
 - Changes in this repo don't update the Claude app. They reach the phone app when merged to `main` (bump `VERSION` in `sw.js`).
 
 ## Recipe data fields
-`title, kind, pot, serves, hours, heat, notes, layers[{label, items[]}], steps[], photos[{id, url, step: number|"general", at}], example, updatedAt`
+`title, kind, pot, serves, hours, heat, notes, layers[{label, items[]}], steps[], photos[{id, url, step: number|"general", at}], yield{base, unit, options[]}, example, updatedAt`
+
+`hours` with letters in it (like "10–12 min") is shown as written; a plain number gets "h" added.
+
+## Scaling a recipe
+A recipe with a `yield` gets a **Make [ ] sosaties** style dropdown (for example `{"base": 12, "unit": "sosaties", "options": [4, 6, 12, 24]}`). The choice is remembered per recipe on the phone.
+- In ingredient lines, `{n}` marks an amount that scales: `{1.2} kg chicken`, `{½} English cucumber`.
+- `[s]` after a word adds the ending only when the amount before it is more than 1: `{2} lemon[s]` shows "1 lemon" or "4 lemons".
+- `{n} kg` under 1 kg is shown in grams. Amounts of 20 and up round to the nearest 5, 3 to 20 to the nearest ½, and small amounts to ¼, ⅓, ½, ⅔ or ¾.
+- Feeds scales too when it's a plain number, and the shopping list uses the chosen size.
+- Amounts without `{ }` never change. Method steps don't scale.
 
 ## How the house potjie was built: Bietjie Lam Groente
+
 Started from Ananda Naude's Lamb and Mutton SA competition-winning lamb potjie, then changed together:
 - Bacon removed, red wine cut to 125 ml (stock raised to 375 ml to compensate)
 - Shanks swapped for 2 kg bone-in potjie/stew meat (about 2½ hours total)
@@ -71,9 +82,21 @@ Started from Ananda Naude's Lamb and Mutton SA competition-winning lamb potjie, 
 - Knorr Brown Onion soup as thickener, sprinkled in dry a little at a time until thick enough
 - 3 sprigs rosemary and 2 bay leaves with the liquid (removed before thickening), 30 g parsley at the end
 - 2 cups basmati or jasmine rice on the side
+- Later changes: 500 g mushrooms (two 250 g packs), one pack chopped and fried at the start, the other kept whole and added with the soft veg; 500 g butternut (1 small)
 - Name: *Bietjie Lam Groente*, where "lam" means both lamb and lazy
 
 Sources: [OFM / Lamb and Mutton SA](https://ofm.co.za/article/the-source/259559/lamb-and-mutton-sa-todays-winning-lamb-recipe), [Taste](https://taste.co.za/recipes/lamb-potjie/), [Daily Maverick](https://www.dailymaverick.co.za/article/2024-08-29-throwback-thursday-jerepigo-pinotage-lambs-neck-potjie.md), [Demand Africa](https://demandafrica.com/food/recipes/lamb-neck-potjie/)
+
+## Greek Mint Chicken Sosaties
+A braai recipe, built together from Drizzle and Dip, Daily Maverick, RecipeTin Eats and Rock Recipes:
+- Chicken breast (not thighs), so the braai time is short: 10–12 minutes over medium-hot coals
+- Yoghurt, olive oil, lemon, garlic, mint and oregano marinade, no chilli
+- Double batch of marinade: half is set aside **before** the raw chicken goes in and used as the sauce, brushed on in the last 2–3 minutes and poured over to serve (gently warmed at most, never boiled, or the yoghurt splits)
+- Red onion, green and red pepper and cherry tomatoes between the chicken
+- No sides; mint tzatziki kept as an optional extra
+- Base recipe makes 12 sosaties for 6 people; the app scales it to 4, 6, 12 or 24
+
+Sources: [Drizzle and Dip](https://drizzleanddip.com/?p=11840), [Daily Maverick](https://www.dailymaverick.co.za/article/2025-10-20-deboned-chicken-thigh-sosaties.md), [RecipeTin Eats](https://www.recipetineats.com/chicken-souvlaki/), [Rock Recipes](https://www.rockrecipes.com/chicken-souvlaki-with-lemon-mint-tzatziki/)
 
 ## History
 1. Cookbook app with recipes saved to the account, two example recipes
@@ -87,3 +110,6 @@ Sources: [OFM / Lamb and Mutton SA](https://ofm.co.za/article/the-source/259559/
 9. Kiekie camera fix
 10. Code and everything so far put in this repo
 11. Phone app: installable PWA on GitHub Pages, works offline, recipes and photos kept on the phone, backup and restore
+12. Bietjie Lam Groente: mushrooms split into two packs, 500 g butternut
+13. Greek Mint Chicken Sosaties added, with the 4 / 6 / 12 / 24 sosaties dropdown that scales the ingredients and shopping list
+14. Phone app: new recipes in the repo now reach phones where the app is already installed, without overwriting recipes changed or deleted on the phone

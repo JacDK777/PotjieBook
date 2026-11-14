@@ -46,7 +46,7 @@ Then open http://localhost:8000. Opening `index.html` straight from disk won't l
 - `manifest.webmanifest`, `sw.js`, `icons/`: what makes it installable and work offline
 - `.github/workflows/pages.yml`: publishes the app to GitHub Pages
 - `recipes/`: readable copies of every recipe, including the house potjie *Bietjie Lam Groente*
-- `data/recipes/`: the recipe data exactly as the app stores it (exported 25 October 2026). `index.json` lists the ones the phone app starts with.
+- `data/recipes/`: the recipe data exactly as the app stores it (exported 14 November 2026). `index.json` lists the ones the phone app adds.
 - `docs/PROJECT_NOTES.md`: every decision, feature, pot size, known limit and the project history
 - `docs/pots/`: photos of the Falkirk 8B and No. 3 pots
 
