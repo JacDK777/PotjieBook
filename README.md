@@ -18,7 +18,7 @@ A South African potjiekos cookbook app, built with Claude.
 **1. As a phone app (PWA).** Hosted on GitHub Pages, you open it in Chrome or Safari and install it to the home screen. It then:
 - opens full-screen with its own icon, like any app
 - keeps recipes and Kiekie photos on the phone (IndexedDB), so it works at the fire with no signal
-- starts with the three recipes in `data/recipes/` the first time it opens
+- adds the recipes listed in `data/recipes/index.json` (each one once, so changes made on the phone are kept)
 - has **Backup** at the bottom of the recipe list: *Save backup* downloads one file with every recipe and photo, and *Load backup or recipe* brings it back (or loads a single recipe file from `data/recipes/`)
 - uses the phone browser's own camera, which fixes the Kiekie camera problem in the Claude app
 
@@ -48,6 +48,8 @@ Then open http://localhost:8000. Opening `index.html` straight from disk won't l
 - `recipes/`: readable copies of every recipe, including the house potjie *Bietjie Lam Groente*
 - `data/recipes/`: the recipe data exactly as the app stores it (exported 14 November 2026). `index.json` lists the ones the phone app adds.
 - `docs/PROJECT_NOTES.md`: every decision, feature, pot size, known limit and the project history
+- `project/`: handover pack for setting PotjieBook up as a Claude Project (start with `project/HANDOVER.md`)
+- `CLAUDE.md`: read automatically by Claude Code
 - `docs/pots/`: photos of the Falkirk 8B and No. 3 pots
 
 Live app (Claude): https://claude.ai/artifact/8kwkRckH34jfP8URVAcLBq

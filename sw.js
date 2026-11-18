@@ -1,6 +1,6 @@
 // PotjieBook service worker: keeps the app working at the fire with no signal.
 // Bump VERSION whenever index.html or the shipped recipes change.
-const VERSION = "potjiebook-v1";
+const VERSION = "potjiebook-v3";
 const SHELL = [
   "./",
   "index.html",

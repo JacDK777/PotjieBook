@@ -210,6 +210,9 @@ form{display:flex;flex-direction:column;gap:16px}
 .yieldbar label{font-family:var(--type);font-size:14px;color:var(--muted)}
 .yieldbar select{font:inherit;font-weight:700;font-size:18px;padding:8px 12px;border:2px solid var(--blou);border-radius:8px;background:var(--surface);color:var(--ink)}
 .yieldbar span{font-family:var(--display);font-weight:400;font-size:20px}
+.toast{position:fixed;left:max(16px,env(safe-area-inset-left,0px));right:max(16px,env(safe-area-inset-right,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:15;max-width:520px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:10px;padding:12px 14px;font-size:15px;line-height:1.4;box-shadow:0 6px 20px rgba(0,0,0,.35)}
+.toast b{display:block;font-family:var(--hand);font-size:22px;color:var(--mielie)}
+.toast button{margin-top:8px;display:block;border:0;border-radius:6px;padding:6px 14px;font-weight:700;background:var(--mielie);color:#141714;cursor:pointer}
 footer{text-align:center;padding-block:8px 32px;color:var(--muted);font-family:var(--hand);font-size:21px}
 @media (prefers-reduced-motion:no-preference){.card{transition:border-color .15s,transform .15s}.card:hover{transform:rotate(-.6deg)}}
 .backup{display:flex;flex-direction:column;gap:10px;margin-top:28px;padding-top:16px;border-top:1.5px dashed var(--line)}
@@ -226,6 +229,7 @@ footer{text-align:center;padding-block:8px 32px;color:var(--muted);font-family:v
 <main class="wrap" id="app"></main>
 <input type="file" class="vh" id="camIn" accept="image/*" capture="environment" tabindex="-1" aria-hidden="true">
 <input type="file" class="vh" id="galIn" accept="image/*" multiple tabindex="-1" aria-hidden="true">
+<div class="toast" id="toast" role="status" hidden></div>
 <div class="sheet" id="sheet" hidden><div class="panel" role="dialog" aria-modal="true" aria-label="Save kiekie"></div></div>
 <div class="sheet" id="lightbox" hidden><div class="panel" role="dialog" aria-modal="true" aria-label="Photo"></div></div>
 <footer class="wrap">Moenie roer nie · Smaaklike ete!</footer>
@@ -576,7 +580,7 @@ function renderDetail(r){
   app.querySelectorAll(".ph").forEach(b=>b.onclick=()=>openPhoto(r.id,b.dataset.ph));
   [["kiekie","camIn"],["loadKiekie","galIn"]].forEach(([bid,iid])=>{
     const el=document.getElementById(bid); if(!el) return;
-    el.addEventListener("click",()=>{photoRecipe=r.id;document.getElementById(iid).value=""});
+    el.addEventListener("click",()=>{photoRecipe=r.id;document.getElementById(iid).value="";pickerWatch()});
     el.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();photoRecipe=r.id;const i=document.getElementById(iid);i.value="";i.click()}});
   });
   if(canWrite){
@@ -592,6 +596,21 @@ function renderDetail(r){
 }
 
 /* ---- Kiekies ---- */
+/* If the camera or gallery never opens (the Claude app on Android blocks it), say so instead of doing nothing. */
+function pickerWatch(){
+  let opened=false;
+  const mark=()=>{opened=true};
+  window.addEventListener("blur",mark,{once:true});
+  document.addEventListener("visibilitychange",mark,{once:true});
+  setTimeout(()=>{
+    window.removeEventListener("blur",mark);document.removeEventListener("visibilitychange",mark);
+    if(opened) return;
+    const t=document.getElementById("toast"); if(!t) return;
+    t.innerHTML=`<b>Die kamera wil nie oopmaak nie.</b> The Claude app doesn't let PotjieBook open your camera or photos. Open PotjieBook in Chrome, signed in to claude.ai, to add kiekies. <button type="button" id="toastX">OK</button>`;
+    t.hidden=false;
+    document.getElementById("toastX").onclick=()=>{t.hidden=true};
+  },1500);
+}
 let photoRecipe=null, pendingFiles=[], assetsNS, assetsTried=false;
 async function getAssets(){
   if(!assetsTried){assetsTried=true;try{assetsNS=window.claude?.use?await window.claude.use("assets"):null}catch(e){assetsNS=null}}

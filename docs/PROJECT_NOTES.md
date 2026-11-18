@@ -49,13 +49,13 @@ Photos: `docs/pots/`. To get an exact 8B size, fill it with a 1-litre jug to abo
 ## Known limits
 - **Sixty60:** Checkers has no public way for other apps to fill the Sixty60 trolley or check stock, so the app gives copyable search words instead.
 - **Internet photos:** the app can't show photos from other websites (blocked in artifacts, and the photos belong to those sites). Hence the Kiekie photos and image-search links.
-- **Kiekie camera:** the first version used a hidden picker that some phones block. Now the buttons open the picker directly. Needs testing on the phone; if the Claude app won't open the camera, use the installed phone app.
+- **Kiekie camera:** the Claude app on Android blocks pages from opening the camera and the gallery, so Kiekie and Load Kiekie do nothing there, and no permission fixes it. The page now shows "Die kamera wil nie oopmaak nie" with the workaround. Use Chrome while signed in to claude.ai, the installed phone app, or send photos in a chat for Claude to upload.
 - **Phone app storage:** recipes and photos live only on that phone. Clearing the browser's site data or uninstalling deletes them, so save a backup now and then. The app asks the browser to keep its data, but iPhones can still clear it if the app goes unused for weeks.
 - **Two books:** the Claude artifact and the phone app don't sync with each other.
 
 ## Where the data lives
 - **Claude artifact:** recipes live in the artifact's database (`recipes` collection), and photos in its asset store.
-- **Phone app:** recipes and photos live in the phone's browser storage (IndexedDB database `potjiebook`, with stores `recipes`, `photos` and `meta`). Photo ids start with `local-`. The first time it opens it loads the recipes listed in `data/recipes/index.json`.
+- **Phone app:** recipes and photos live in the phone's browser storage (IndexedDB database `potjiebook`, with stores `recipes`, `photos` and `meta`). Photo ids start with `local-`. It adds each recipe listed in `data/recipes/index.json` once (tracked in `meta.seededIds`).
 - Neither is stored in this repo automatically. `data/recipes/*.json` is an export of the Claude recipes as of 14 November 2026. `recipes/*.md` are readable copies.
 - A phone backup file is JSON: `{app:"PotjieBook", version:1, exportedAt, recipes:[{id, ...recipe}], photos:{id: dataURL}}`. *Load backup or recipe* also takes one recipe or a list of recipes.
 - Changes in this repo don't update the Claude app. They reach the phone app when merged to `main` (bump `VERSION` in `sw.js`).
@@ -113,3 +113,5 @@ Sources: [Drizzle and Dip](https://drizzleanddip.com/?p=11840), [Daily Maverick]
 12. Bietjie Lam Groente: mushrooms split into two packs, 500 g butternut
 13. Greek Mint Chicken Sosaties added, with the 4 / 6 / 12 / 24 sosaties dropdown that scales the ingredients and shopping list
 14. Phone app: new recipes in the repo now reach phones where the app is already installed, without overwriting recipes changed or deleted on the phone
+15. Kiekie: confirmed the Claude Android app blocks camera and gallery; added the "Die kamera wil nie oopmaak nie" message with workarounds
+16. Handover pack in `project/` and `CLAUDE.md`, for setting PotjieBook up as a Claude Project or in Claude Code
